@@ -4,17 +4,14 @@
 #include "../common/common_headers.h"
 
 // maps sizes
-#define RINGBUF_SIZE 1024
-#define HASHMAP_SIZE 4096
+#define RINGBUF_SIZE 1 << 24
+#define HASHMAP_SIZE 10240
 
-/* Used hashmap for:
-*   1. track events
-*   2. stop streaming every events to userland
-*/
+// This hashmap used for track connect events
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
     __type(key, __u32); // key = pid
-    __type(value, struct proc_state);   // events data holding struct
-}process_map SEC(".maps");  // hashmap name
+    __type(value, struct net_event);   // connect events data holding this struct
+}connect_map SEC(".maps");  // hashmap name
 
