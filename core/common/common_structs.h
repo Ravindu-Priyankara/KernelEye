@@ -8,4 +8,5 @@ struct net_event{
     __u64 ts;   // timestamp {8 byte}
     // total = 18 bytes, need 6 bytes for alignment
     __u8 padding[6]; // total 24 bytes
+    //char type[16]; // bind or connect {future}
 };

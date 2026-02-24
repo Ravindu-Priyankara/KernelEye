@@ -1,7 +1,7 @@
 #pragma once
 
-//header file
-#include "../common/common_headers.h"
+#include "../common/common_headers.h"   // header file
+#include "../common/common_structs.h"   // structs for maps
 
 // maps sizes
 #define RINGBUF_SIZE 1 << 24
@@ -15,3 +15,8 @@ struct {
     __type(value, struct net_event);   // connect events data holding this struct
 }connect_map SEC(".maps");  // hashmap name
 
+//This ringbuf map is used for streaming events to the userland
+struct{
+    __uint(type, BPF_MAP_TYPE_RINGBUF); // map type
+    __uint(max_entries, RINGBUF_SIZE);  // ringbuf maximum entries
+}alert_map SEC(".maps");    // ringbuf name
