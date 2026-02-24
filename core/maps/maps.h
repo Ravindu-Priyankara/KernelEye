@@ -8,7 +8,7 @@
 *******************************/
 
 // maps sizes
-#define RINGBUF_SIZE 1 << 24
+#define RINGBUF_SIZE (1 << 24)
 #define HASHMAP_SIZE 10240
 
 /*******************************
@@ -32,3 +32,10 @@ struct{
     __uint(type, BPF_MAP_TYPE_RINGBUF); // map type
     __uint(max_entries, RINGBUF_SIZE);  // ringbuf maximum entries
 }alert_map SEC(".maps");    // ringbuf name
+
+/*******************************
+****** Maps Validation *********
+********************************/
+
+_Static_assert(HASHMAP_SIZE > 0, "HASHMAP_SIZE must be > 0"); // validate HashMap size 
+_Static_assert(RINGBUF_SIZE >= (1 << 12), "Ringbuf too small"); // validate Ringbuf size
