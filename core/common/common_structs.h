@@ -1,3 +1,17 @@
+/*
+ * Kernel Eye - eBPF Runtime Security Framework
+ * SPDX-License-Identifier: MIT
+ *
+ * File: common_structs.h
+ * Description:
+ *   Shared event structures between eBPF programs and userland loader.
+ *   These structs define the ABI contract for map storage and ring buffer
+ *   streaming events. Layout must remain stable.
+ *
+ * Author: Ravindu Priyankara
+ * Year: 2026
+ */
+
 #pragma once
 
 #include <stddef.h>

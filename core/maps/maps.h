@@ -1,3 +1,16 @@
+/*
+ * Kernel Eye - eBPF Runtime Security Framework
+ * SPDX-License-Identifier: MIT
+ *
+ * File: maps.h
+ * Description:
+ *   Defines all BPF maps used for tracking and streaming events.
+ *   Includes hash maps for correlation and ring buffer for userland alerts.
+ *
+ * Author: Ravindu Priyankara
+ * Year: 2026
+ */
+
 #pragma once
 
 #include "../common/common_headers.h"   // header file
