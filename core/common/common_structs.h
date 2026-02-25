@@ -23,32 +23,80 @@
 // This struct use for tracking connect events with hashmap
 // Total byte count is 24 bytes
 struct connect_event{
-    __u32 ppid; // parent process id {4 bytes}
-    __u32 ip;   // connect ip {4 bytes}
-    __u64 net_ts;   // timestamp {8 byte}
-    __u16 port; // connect port {2 byte}
-    // compiler will fill 6 bytes of padding
+    __u32 ppid; // parent process id 
+    __u32 ip;   // connect ip 
+    __u64 net_ts;   // timestamp 
+    __u16 port; // connect port 
+    // 6 bytes of padding
 };
 
 /*************************************
-******* Events Streaming Structs *****
-**************************************/
+******** Common Event Header *********
+*************************************/
 
+// This is the list of our header types
+enum ke_event_type {
+    KE_EVENT_INVALID = 0,   // used for error handling
+    KE_EVENT_EXECVE = 1,    
+    KE_EVENT_CONNECT = 2,   
+    KE_EVENT_REVERSE_SHELL = 3, 
+};
 
-//This struct used for alerting suspicious processes {mainly reverse shells}
-// Total bytes count is 288 bytes
-struct reverse_shell_event_alert{
-    //common fields
-    __u32 pid;  // process id {4 bytes}
-    __u32 ppid; // parent process id {4 bytes}
-    // execve fields
-    char filename[256]; // execve has filename {256 bytes}
-    __u64 execve_ts;    // timestamp for execve {8 bytes}
-    //  connect fields
-    __u64  net_ts; // connect timestamp {8 bytes}
-    __u32 ip;   // connect ip address {4 bytes}
-    __u16 port; // connect port {2 bytes}
-    //compiler will fill 2 bytes of padding
+/* 
+ * This header is shared by ALL streamed events.
+ * Keep this small and stable.
+ *
+ * ABI NOTE:
+ * Layout must remain stable (shared with userland).
+ * Size: 24 bytes (aligned to 8).
+ *
+ */
+struct ke_event_header {
+    __u32 type;      // event type
+    __u32 pid;       // process id
+    __u64 ts;        // primary timestamp
+    __u32 ppid;      // parent pid 
+    // 4 bytes of padding
+};
+
+/****************************************
+******* Detection Specific Payloads *****
+*****************************************/
+
+/* 
+* This struct used for transfer `connect + execve` events data to userland for
+*    1. Detect suspicious or not
+*    2. Analyse data
+*
+* ABI NOTE:
+* Layout must remain stable (shared with userland).
+* Size: 280 bytes (aligned to 8).
+*
+*/
+struct ke_reverse_shell_payload {
+    char filename[256]; // filename ("/bin/sh"),
+    __u64 execve_ts; // execve timestamp 
+    __u64 net_ts; // connect timestamp 
+    __u32 ip; // ip address 
+    __u16 port; // port number
+    // 2 bytes of padding
+};
+
+/*****************************
+******* Streaming events *****
+******************************/
+
+/* 
+* This struct use for streaming `connect + execve` events to the userland
+*
+* ABI NOTE:
+* Layout must remain stable (shared with userland).
+* Size: 304 bytes (aligned to 8).
+*
+*/
+struct ke_reverse_shell_event {
+    struct ke_event_header hdr; 
+    struct ke_reverse_shell_payload data;   
 };
 
 /*************************************
@@ -56,11 +104,18 @@ struct reverse_shell_event_alert{
 **************************************/
 
 // connect_event must remain 24 bytes (aligned to 8)
-_Static_assert(sizeof(struct connect_event) == 24,"connect_event size mismatch!");
+_Static_assert(sizeof(struct connect_event) == 24,"connect_event struct size mismatch!");
 
-// Layout must remain 288 bytes (8-byte aligned).
-// If fields change and size differs, fail compilation.
-_Static_assert(sizeof(struct reverse_shell_event_alert) == 288,"reverse_shell_event_alert size mismatch!");
+// ke_event_header must remain 24 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
 
-//  Stop reordering structs
-_Static_assert(offsetof(struct reverse_shell_event_alert, net_ts) == 272,"net_ts offset changed!");
+// ke_reverse_shell_payload must remain 280 bytes
+_Static_assert(sizeof(struct ke_reverse_shell_payload) == 278,"ke_reverse_shell_payload size mismatch!");
+
+// Protect reordering structs
+_Static_assert(offsetof(struct ke_reverse_shell_payload, port) == 278,"port offset changed!");
+
+// Protect header type reordering
+_Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
+_Static_assert(KE_EVENT_CONNECT == 2, "CONNECT enum changed!");
+_Static_assert(KE_EVENT_REVERSE_SHELL == 3, "REVERSE_SHELL enum changed!");
