@@ -115,7 +115,7 @@ _Static_assert(sizeof(struct ke_reverse_shell_payload) == 278,"ke_reverse_shell_
 // Protect reordering structs
 _Static_assert(offsetof(struct ke_reverse_shell_payload, port) == 278,"port offset changed!");
 
-// Protect header type reordering
+// Protect header types reordering
 _Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
 _Static_assert(KE_EVENT_CONNECT == 2, "CONNECT enum changed!");
 _Static_assert(KE_EVENT_REVERSE_SHELL == 3, "REVERSE_SHELL enum changed!");
