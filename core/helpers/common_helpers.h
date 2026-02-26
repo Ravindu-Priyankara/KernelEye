@@ -1,11 +1,8 @@
 #pragma once
 
 #include "../common/common_headers.h"
+#include "../common/common_status.h"
 
-typedef enum {
-    ERR_FAILURE = -1,
-    ERR_SUCCESS =  0,
-} Status; 
 
 // This helper used for get the TGID from events
 static __u32 __always_inline get_tgid(void){
