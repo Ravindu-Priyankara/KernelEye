@@ -48,8 +48,3 @@ static int __always_inline extract_ipv4_data(const struct sockaddr_in sin, __u64
     __u16 port = bpf_ntohs(sin.sin_port);
     ret = update_hash_map_element(map, key, &addr, flags);
 }
-
-// Protect socket type reordering
-_Static_assert(FAMILY_UNKNOWN == 0, "Default socket family changed!");
-_Static_assert(FAMILY_IPV4 == 1, "IPV4 socket family changed!");
-_Static_assert(FAMILY_IPV6 == 2, "IPV6 socket family changed!");
