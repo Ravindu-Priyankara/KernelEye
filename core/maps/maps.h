@@ -28,13 +28,21 @@
 *********** Hash Maps **********
 ********************************/
 
-// This hashmap used for track connect events
+// This hashmap used for track outboud connection events
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
     __type(key, __u32); // key = pid
     __type(value, struct connect_event);   // connect events data holding this struct
 }connect_map SEC(".maps");  // hashmap name
+
+//This hashmap used for temporary store connect events
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);    // map type
+    __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
+    __type(key, __u32); // key = pid
+    __type(value, struct connect_event);   // connect events data holding this struct
+}tmp_connect_map SEC(".maps");  // hashmap name
 
 /*******************************
 ****** Streaming Maps **********
