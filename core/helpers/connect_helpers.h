@@ -2,13 +2,7 @@
 
 #include "../common/common_headers.h"
 #include "common_helpers.h"
-
-// We focused socket family types
-typedef enum {
-    FAMILY_UNKNOWN = 0, // for other categories
-    FAMILY_IPV4,    // for ipv4
-    FAMILY_IPV6     // for ipv6
-} socket_category;
+#include "../common/common_sockets.h"
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
