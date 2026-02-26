@@ -16,18 +16,29 @@
 
 #include <stddef.h>
 
+// used for support ipv4 + ipv6
+// total bytes 24 bytes
+struct ke_sockaddr {
+    __u16 family;   // socket family
+
+    union {
+        __u32 ipv4;        // AF_INET
+        __u8  ipv6[16];    // AF_INET6
+    };
+
+    __u16 port;
+};
+
 /*************************************
 ******* Events Holding Structs *******
 **************************************/
 
 // This struct use for tracking connect events with hashmap
-// Total byte count is 24 bytes
+// Total byte count is 36 bytes
 struct connect_event{
     __u32 ppid; // parent process id 
-    __u32 ip;   // connect ip 
     __u64 net_ts;   // timestamp 
-    __u16 port; // connect port 
-    // 6 bytes of padding
+    struct ke_sockaddr addr;    // used for support few socket families
 };
 
 /*************************************
@@ -35,7 +46,7 @@ struct connect_event{
 *************************************/
 
 // This is the list of our header types
-enum ke_event_type {
+typedef enum ke_event_type {
     KE_EVENT_INVALID = 0,   // used for error handling
     KE_EVENT_EXECVE = 1,    
     KE_EVENT_CONNECT = 2,   
@@ -70,15 +81,14 @@ struct ke_event_header {
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
-* Size: 280 bytes (aligned to 8).
+* Size: 296 bytes (aligned to 8).
 *
 */
 struct ke_reverse_shell_payload {
     char filename[256]; // filename ("/bin/sh"),
     __u64 execve_ts; // execve timestamp 
     __u64 net_ts; // connect timestamp 
-    __u32 ip; // ip address 
-    __u16 port; // port number
+    struct ke_sockaddr addr;
     // 2 bytes of padding
 };
 
@@ -91,7 +101,7 @@ struct ke_reverse_shell_payload {
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
-* Size: 304 bytes (aligned to 8).
+* Size: 320 bytes (aligned to 8).
 *
 */
 struct ke_reverse_shell_event {
@@ -103,17 +113,17 @@ struct ke_reverse_shell_event {
 ******* Struct Validations ***********
 **************************************/
 
-// connect_event must remain 24 bytes (aligned to 8)
-_Static_assert(sizeof(struct connect_event) == 24,"connect_event struct size mismatch!");
+// connect_event must remain 36 bytes (aligned to 8)
+_Static_assert(sizeof(struct connect_event) == 36,"connect_event struct size mismatch!");
 
 // ke_event_header must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
 
-// ke_reverse_shell_payload must remain 280 bytes
-_Static_assert(sizeof(struct ke_reverse_shell_payload) == 278,"ke_reverse_shell_payload size mismatch!");
+// ke_reverse_shell_payload must remain 296 bytes
+_Static_assert(sizeof(struct ke_reverse_shell_payload) == 296,"ke_reverse_shell_payload size mismatch!");
 
 // Protect reordering structs
-_Static_assert(offsetof(struct ke_reverse_shell_payload, port) == 278,"port offset changed!");
+_Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");
 
 // Protect header types reordering
 _Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
