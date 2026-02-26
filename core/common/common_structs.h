@@ -125,6 +125,12 @@ _Static_assert(sizeof(struct ke_reverse_shell_payload) == 296,"ke_reverse_shell_
 // Protect reordering structs
 _Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");
 
+// ke_sockaddr must remain 24 bytes (align to 8)
+_Static_assert(sizeof(struct ke_sockaddr) == 24,"ke_sockaddr size mismatch");
+
+// protect ke_sockaddr reordering
+_Static_assert(offsetof(struct ke_sockaddr, port) == 20,"port offset changed");
+
 // Protect header types reordering
 _Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
 _Static_assert(KE_EVENT_CONNECT == 2, "CONNECT enum changed!");
