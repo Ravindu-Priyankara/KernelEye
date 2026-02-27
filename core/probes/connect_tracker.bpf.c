@@ -16,6 +16,8 @@
 #include "../maps/maps.h"
 #include "../helpers/common_helpers.h"
 #include "../helpers/connect_helpers.h"
+#include "../common/common_validation.h"
+#include "../common/common_status.h"
 
 
 SEC("tracepoint/syscalls/sys_enter_connect")
@@ -41,7 +43,17 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     * This variable used for hols tgid.
     * Stack Allocation: 4 bytes
   */
-  int key;
+  __u32 pid;
+  /* 
+    * This variable used for hols parent tgid.
+    * Stack Allocation: 4 bytes
+  */
+  __u32 ppid;
+  /* 
+    * This variable used for hols timestamp.
+    * Stack Allocation: 8 bytes
+  */
+  __u64 ns_ts;
 
   // Check that there was data of `struct sockaddr *uservaddr`
   if(!ctx->args[1]) return 0;
@@ -59,7 +71,17 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   if(ret < 0) return 0;
 
   // for get tgid
-  key = get_tgid();
+  pid = get_tgid();
+  ppid = get_ppid();
+  net_ts = bpf_ktime_get_ns();
 
+  // prevent null values
+  if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
+  if(validate_not_null_u32(ppid) != ERR_SUCCESS) return 0;
+  if(validate_not_null_u64(net_ts) != ERR_SUCCESS) return 0;
+
+  //sanitize the data
+  if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
+  if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
   
  }

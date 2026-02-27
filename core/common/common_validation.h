@@ -28,7 +28,17 @@ static int __always_inline validate_not_null_u64(const __u64 key){
     return key ? ERR_SUCCESS : ERR_FAILURE;
 }
 
+static int __always_inline validate_not_null_u32(const __u32 key){
+    return key ? ERR_SUCCESS : ERR_FAILURE;
+}
+
 //int type validation
 statis int __always_inline validate_not_null_int(const int key){
     return key ? ERR_SUCCESS : ERR_FAILURE;
+}
+
+// sanitize the PID
+static int __always_inline sanitize_the_pid(__u32 key){
+    if(key == 0 || key > MAX_PID) return ERR_FAILURE;
+    return ERR_SUCCESS;
 }
