@@ -19,14 +19,14 @@ static __u32 __always_inline get_pid(void){
 static __u32 __always_inline get_ppid(void){
     // get current task pointer
     struct task_struct  *task = (struct task_struct *)bpf_get_current_task();
-    if(validate_not_null(task)!= ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null(task)!= ERR_SUCCESS) return 0;
 
     // prepare a parent pointer for parent
     struct task_struct *parent = NULL;
 
     // read real parent safly
     bpf_core_read(&parent, sizeof(parent), &task->real_parent);
-    if(validate_not_null(parent) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null(parent) != ERR_SUCCESS) return 0;
 
     //for hold ppid
     __u32 ppid = 0;
@@ -71,7 +71,6 @@ static void * __always_inline check_hash_map_data_availability(void *map, const 
 static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags){
     //prevent null data
     if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
-    if(validate_not_null_u64(flags) != ERR_SUCCESS) return ERR_FAILURE;
 
     void *state = check_hash_map_data_availability(map, key);
 

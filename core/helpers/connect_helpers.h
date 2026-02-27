@@ -48,7 +48,7 @@ static int __always_inline parse_socket_address(const int family, const void *us
         case FAMILY_IPV6:{
             return parse_ipv6(usr_ptr, event);  // pass data to the ipv6 data extraction function
         }
-        default: ERR_FAILURE;   // Other socket categories
+        default: return ERR_FAILURE;   // Other socket categories
     }
 }
 

@@ -53,7 +53,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     * This variable used for hols timestamp.
     * Stack Allocation: 8 bytes
   */
-  __u64 ns_ts;
+  __u64 net_ts;
 
   // Check that there was data of `struct sockaddr *uservaddr`
   if(!ctx->args[1]) return 0;
@@ -83,5 +83,15 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   //sanitize the data
   if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
   if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
-  
+
+  // assign values
+  event.ppid = ppid;
+  event.net_ts = net_ts;
+
+  //update the hash map
+  ret = update_hash_map_element(&connect_map, &pid, &event, BPF_ANY);
+  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+  return ERR_SUCCESS;
+
  }
