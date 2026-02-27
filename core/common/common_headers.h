@@ -7,3 +7,8 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
+
+// for socket based things
+#include <linux/socket.h>
+#include <linux/in.h>
+#include <linux/in6.h>
