@@ -8,8 +8,3 @@
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_endian.h> // for bpf_ntohs
-
-// for socket based things
-#include <linux/socket.h>
-#include <linux/in.h>
-#include <linux/in6.h>
