@@ -49,7 +49,7 @@ static __u32 __always_inline get_ppid(void){
 */
 static __always_inline void *check_hash_map_data_availability(void *map, const void *key){
     //prevent null data
-    if(validate_not_null_duel(map, key) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_duel(map, key) != ERR_SUCCESS) return 0;
 
     return bpf_map_lookup_elem(map, key);
 }
