@@ -6,6 +6,10 @@
 #include "../common/common_status.h"
 #include "../common/common_validation.h"
 
+// Forward declarations
+static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event);
+static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event);
+
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
 *   Argivements:   general sockaddr struct
@@ -27,30 +31,6 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 
 }
 
-/*
-*   This helper function is used to pass socket details to the correct functions. According to the socket family
-*   Argivements
-*       1. family type(AF_INET, AF_INET6)
-*       2. pointer to the general sockaddr
-*       3. struct for hold socket details
-*   
-*   Return 0 / -1 {0 = success, -1 = failure}
-*/
-static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
-    // This validation helps to prevent NULL data.
-    if(validate_not_null_int(family) != ERR_SUCCESS) return ERR_FAILURE;
-    if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
-
-    switch(family){
-        case FAMILY_IPV4:{  // IPV4 block
-            return parse_ipv4(usr_ptr, event);  // pass data to the ipv4 data extraction function
-        }
-        case FAMILY_IPV6:{
-            return parse_ipv6(usr_ptr, event);  // pass data to the ipv6 data extraction function
-        }
-        default: return ERR_FAILURE;   // Other socket categories
-    }
-}
 
 /*
 *   This helper function used to extract ipv4 data
@@ -111,4 +91,29 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event 
 
     return ERR_SUCCESS;
 
+}
+
+/*
+*   This helper function is used to pass socket details to the correct functions. According to the socket family
+*   Argivements
+*       1. family type(AF_INET, AF_INET6)
+*       2. pointer to the general sockaddr
+*       3. struct for hold socket details
+*   
+*   Return 0 / -1 {0 = success, -1 = failure}
+*/
+static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
+    // This validation helps to prevent NULL data.
+    if(validate_not_null_int(family) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
+
+    switch(family){
+        case FAMILY_IPV4:{  // IPV4 block
+            return parse_ipv4(usr_ptr, event);  // pass data to the ipv4 data extraction function
+        }
+        case FAMILY_IPV6:{
+            return parse_ipv6(usr_ptr, event);  // pass data to the ipv6 data extraction function
+        }
+        default: return ERR_FAILURE;   // Other socket categories
+    }
 }
