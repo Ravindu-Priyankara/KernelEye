@@ -47,7 +47,7 @@ static __u32 __always_inline get_ppid(void){
 *       1. NULL (not found valid data)
 *       2. Generic pointer(void *) to the value associated with the key.
 */
-static void * __always_inline check_hash_map_data_availability(void *map, const void *key){
+static __always_inline void *check_hash_map_data_availability(void *map, const void *key){
     //prevent null data
     if(validate_not_null_duel(map, key) != ERR_SUCCESS) return ERR_FAILURE;
 
