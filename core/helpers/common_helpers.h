@@ -15,6 +15,29 @@ static __u32 __always_inline get_pid(void){
     return (__u32)bpf_get_current_pid_tgid();
 }
 
+// This helper used for get the PPID from task struct
+static __u32 __always_inline get_ppid(void){
+    // get current task pointer
+    struct task_struct  *task = (struct task_struct *)bpf_get_current_task();
+    if(validate_not_null(task)!= ERR_SUCCESS) return ERR_FAILURE;
+
+    // prepare a parent pointer for parent
+    struct task_struct *parent = NULL;
+
+    // read real parent safly
+    bpf_core_read(&parent, sizeof(parent), &task->real_parent);
+    if(validate_not_null(parent) != ERR_SUCCESS) return ERR_FAILURE;
+
+    //for hold ppid
+    __u32 ppid = 0;
+
+    // get parent tgid
+    bpf_core_read(&ppid, sizeof(ppid), &parent->tgid);
+
+    return ppid;
+
+}
+
 /*
 *   This function use for check hash map data availability
 *   Argivements:

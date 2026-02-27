@@ -9,50 +9,57 @@
  *
  * Author: Ravindu Priyankara
  * Year: 2026
- */
+*/
 
- #include "../common/common_headers.h"
- #include "../common/common_structs.h"
- #include "../maps/maps.h"
- #include "../helpers/common_helpers.h"
- #include "../helpers/connect_helpers.h"
+#include "../common/common_headers.h"
+#include "../common/common_structs.h"
+#include "../maps/maps.h"
+#include "../helpers/common_helpers.h"
+#include "../helpers/connect_helpers.h"
 
 
- SEC("tracepoint/syscalls/sys_enter_connect")
- int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
-    /*
+SEC("tracepoint/syscalls/sys_enter_connect")
+int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
+  /*
     * Access the generic sock address
     * Stack Allocation: 16 bytes
-    */
-    struct sockaddr sa = {};
+  */
+  struct sockaddr sa = {};
 
-    /*
-    * This struct used for temporary hold our IPV4 or IPV6 data
-    * Stack Allocation: 24 bytes
-    */
-    struct connect_event event = {};
+  /*
+    * This struct used for hold our IPV4 or IPV6 data
+    * Stack Allocation: 40 bytes
+  */
+  struct connect_event event = {};
 
-    /*
+  /*
     * This variable used for handle return values.
     * Stack Allocation: 4 bytes
-    */
-    int ret;
+  */
+  int ret;
+  /* 
+    * This variable used for hols tgid.
+    * Stack Allocation: 4 bytes
+  */
+  int key;
 
-    // Check that there was data of `struct sockaddr *uservaddr`
-    if(!ctx->args[1]) return 0;
+  // Check that there was data of `struct sockaddr *uservaddr`
+  if(!ctx->args[1]) return 0;
 
-    // Read the generic pointer safely
-    ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
-    if(ret < 0)return 0;
+  // Read the generic pointer safely
+  ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
+  if(ret < 0)return 0;
 
-    // Socket family identifier
-    ret = get_socket_family(&sa);
-    if(ret == 0) return 0;
+  // Socket family identifier
+  ret = get_socket_family(&sa);
+  if(ret == 0) return 0;
 
-   // According to socket family, This helps to get IPV4 or IPV6 data
-   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
-   if(ret < 0) return 0;
+  // According to socket family, This helps to get IPV4 or IPV6 data
+  ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
+  if(ret < 0) return 0;
 
+  // for get tgid
+  key = get_tgid();
 
-
+  
  }
