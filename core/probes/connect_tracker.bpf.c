@@ -26,7 +26,16 @@
     */
     struct sockaddr sa = {};
 
-    // return handler
+    /*
+    * This struct used for temporary hold our IPV4 or IPV6 data
+    * Stack Allocation: 24 bytes
+    */
+    struct ke_sockaddr event = {};
+
+    /*
+    * This variable used for handle return values.
+    * Stack Allocation: 4 bytes
+    */
     int ret;
 
     // Check that there was data of `struct sockaddr *uservaddr`
@@ -39,6 +48,10 @@
     // Socket family identifier
     ret = get_socket_family(&sa);
     if(ret == 0) return 0;
+
+   // According to socket family, This helps to get IPV4 or IPV6 data
+   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
+   if(ret < 0) return 0;
 
 
 

@@ -34,7 +34,7 @@ struct ke_sockaddr {
 **************************************/
 
 // This struct use for tracking connect events with hashmap
-// Total byte count is 36 bytes
+// Total byte count is 40 bytes
 struct connect_event{
     __u32 ppid; // parent process id 
     __u64 net_ts;   // timestamp 
@@ -113,8 +113,8 @@ struct ke_reverse_shell_event {
 ******* Struct Validations ***********
 **************************************/
 
-// connect_event must remain 36 bytes (aligned to 8)
-_Static_assert(sizeof(struct connect_event) == 36,"connect_event struct size mismatch!");
+// connect_event must remain 40 bytes (aligned to 8)
+_Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mismatch!");
 
 // ke_event_header must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
