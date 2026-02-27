@@ -2,6 +2,7 @@
 
 #include "../common/common_headers.h"
 #include "../common/common_status.h"
+#include "../common/common_validation.h"
 
 
 // This helper used for get the TGID from events
@@ -24,6 +25,9 @@ static __u32 __always_inline get_pid(void){
 *       2. Generic pointer(void *) to the value associated with the key.
 */
 static void * __always_inline check_hash_map_data_availability(void *map, const void *key){
+    //prevent null data
+    if(validate_not_null_duel(map, key) != ERR_SUCCESS) return ERR_FAILURE;
+
     return bpf_map_lookup_elem(map, key);
 }
 
@@ -42,6 +46,10 @@ static void * __always_inline check_hash_map_data_availability(void *map, const 
 *       0 / -1 {0 = Success, -1 = failure}
 */
 static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags){
+    //prevent null data
+    if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_u64(flags) != ERR_SUCCESS) return ERR_FAILURE;
+
     void *state = check_hash_map_data_availability(map, key);
 
     // not existing data

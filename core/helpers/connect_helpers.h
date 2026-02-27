@@ -4,6 +4,7 @@
 #include "common_helpers.h"
 #include "../common/common_sockets.h"
 #include "../common/common_status.h"
+#include "../common/common_validation.h"
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
@@ -11,7 +12,8 @@
 *   Return: socket family type
 */
 static int __always_inline get_socket_family(const struct sockaddr *sa){
-    if(!sa) return FAMILY_UNKNOWN; // Prevent NULL data
+    //prevent null data
+    if(validate_not_null(sa) != ERR_SUCCESS) return ERR_FAILURE;
 
     // Take socket family snapshot
     __u16 family = sa->sa_family;
@@ -36,14 +38,9 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 */
 static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct ke_sockaddr *event){
     // This validation helps to prevent NULL data.
-    if(!family || !usr_ptr || !event){
-        /*
-        *   Edge Case: The user pointer is NULL, but the event struct has data.  
-        *   Solution: Make the event struct also zero.  
-        */
-        if(event) __builtin_memcpy(event, 0, sizeof(*event)); 
-        return ERR_FAILURE;
-    }
+    if(validate_not_null_int(family) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
+
     switch(family){
         case FAMILY_IPV4:{  // IPV4 block
             return parse_ipv4(usr_ptr, event);  // pass data to the ipv4 data extraction function
@@ -65,14 +62,8 @@ static int __always_inline parse_socket_address(const int family, const void *us
 */
 static int __always_inline parse_ipv4(const void *usr_ptr, struct ke_sockaddr *event){
     // This validation helps to prevent NULL data.
-    if(!usr_ptr || !event){
-        /*
-        *   Edge Case: The user pointer is NULL, but the event struct has data.  
-        *   Solution: Make the event struct also zero.  
-        */
-        if(event) __builtin_memcpy(event, 0, sizeof(*event)); 
-        return ERR_FAILURE;
-    }
+    if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
+
     /*  This struct helps to extract ipv4
     *       1. ip address
     *       2. port number
@@ -100,14 +91,8 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct ke_sockaddr *e
 */
 static int __always_inline parse_ipv6(const void *usr_ptr, struct ke_sockaddr *event){
     // This validation helps to prevent NULL data.
-    if(!usr_ptr || !event){
-        /*
-        *   Edge Case: The user pointer is NULL, but the event struct has data.  
-        *   Solution: Make the event struct also zero.  
-        */
-        if(event) __builtin_memcpy(event, 0, sizeof(*event)); 
-        return ERR_FAILURE;
-    }
+    if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
+    
     /*  This struct helps to extract ipv6
     *       1. ip address
     *       2. port number
