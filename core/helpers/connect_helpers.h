@@ -36,7 +36,7 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 *   
 *   Return 0 / -1 {0 = success, -1 = failure}
 */
-static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct ke_sockaddr *event){
+static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_int(family) != ERR_SUCCESS) return ERR_FAILURE;
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
@@ -60,7 +60,7 @@ static int __always_inline parse_socket_address(const int family, const void *us
 *
 *   Return 0 / -1 {0 = Success, -1 = failure}
 */
-static int __always_inline parse_ipv4(const void *usr_ptr, struct ke_sockaddr *event){
+static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
 
@@ -74,9 +74,9 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct ke_sockaddr *e
     if(bpf_probe_read_user(&sin, sizeof(sin), usr_ptr) < 0) return ERR_FAILURE;
 
     // fill the ipv4 event data
-    event->family = FAMILY_IPV4;
-    event->ipv4 = sin.sin_addr.s_addr;
-    event->port = bpf_ntohs(sin.sin_port);
+    event->addr.family = FAMILY_IPV4;
+    event->addr.ipv4 = sin.sin_addr.s_addr;
+    event->addr.port = bpf_ntohs(sin.sin_port);
 
     return ERR_SUCCESS;
 }
@@ -89,7 +89,7 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct ke_sockaddr *e
 *
 *   Return 0 / -1 {0 = Success, -1 = failure}
 */
-static int __always_inline parse_ipv6(const void *usr_ptr, struct ke_sockaddr *event){
+static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
     
@@ -103,11 +103,11 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct ke_sockaddr *e
     if(bpf_probe_read_user(&sin6, sizeof(sin6), usr_ptr) < 0) return ERR_FAILURE;
 
     // copy the ipv6 address to our struct
-    __builtin_memcpy(event->tpv6, &sin6.sin6_addr, 16);
+    __builtin_memcpy(event->addr.ipv6, &sin6.sin6_addr, 16);
 
     // fill other ipv6 data
-    event->family = FAMILY_IPV6;
-    event->port = bpf_ntohs(sin6.sin6_port);
+    event->addr.family = FAMILY_IPV6;
+    event->addr.port = bpf_ntohs(sin6.sin6_port);
 
     return ERR_SUCCESS;
 

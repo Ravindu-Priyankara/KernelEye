@@ -30,7 +30,7 @@
     * This struct used for temporary hold our IPV4 or IPV6 data
     * Stack Allocation: 24 bytes
     */
-    struct ke_sockaddr event = {};
+    struct connect_event event = {};
 
     /*
     * This variable used for handle return values.
