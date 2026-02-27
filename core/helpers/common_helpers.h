@@ -14,21 +14,39 @@ static __u32 __always_inline get_pid(void){
     return (__u32)bpf_get_current_pid_tgid();
 }
 
-// This function use for read maps has data or not
+/*
+*   This function use for check hash map data availability
+*   Argivements:
+*       1. map
+*       2. key (Mainly PID is the key)
+*   Return:
+*       1. NULL (not found valid data)
+*       2. Generic pointer(void *) to the value associated with the key.
+*/
 static void * __always_inline check_hash_map_data_availability(void *map, const void *key){
     return bpf_map_lookup_elem(map, key);
 }
 
+/*
+*   This helper function used for update hash maps element
+*       Task 1:
+*           * Check data already stored or not.
+*       Task 2:
+*           * If there wasn't data. Write values from maps
+*   Argivements:
+*       1. map
+*       2. key (Mainly PID is the key)
+*       3. value (data fields ex:- ipv4 addr, ipv6 addr, port)
+*       4. flags (commonly used BPF_ANY, but it depends on incident)
+*   Return:
+*       0 / -1 {0 = Success, -1 = failure}
+*/
 static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags){
     void *state = check_hash_map_data_availability(map, key);
 
+    // not existing data
     if(!state){
-        bpf_map_update_elem(map, key, value, flags);
-        state = check_hash_map_data_availability(map, key);
-        if(!state){
-            return ERR_FAILURE;
-        }else{
-            return ERR_SUCCESS;
-        }
-    }
+        int ret = bpf_map_update_elem(map, key, value, flags);  // update the elements
+        return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
+    }else return ERR_SUCCESS; // Key already exists
 }
