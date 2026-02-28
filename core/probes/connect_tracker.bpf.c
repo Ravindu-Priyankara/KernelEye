@@ -18,6 +18,7 @@
 #include "../helpers/connect_helpers.h"
 #include "../common/common_validation.h"
 #include "../common/common_status.h"
+#include "../common/common_debugging.h"
 
 
 SEC("tracepoint/syscalls/sys_enter_connect")
@@ -91,6 +92,9 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   //update the hash map
   ret = update_hash_map_element(&connect_map, &pid, &event, BPF_ANY);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+  // for debugging
+  debugging(CONNECT, pid);
 
   return ERR_SUCCESS;
 
