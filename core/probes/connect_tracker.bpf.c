@@ -94,7 +94,9 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
-  debugging(CONNECT, pid);
+  #ifdef DEBUG_MODE
+      debug_counter(1); // increment debug counter
+  #endif
 
   return ERR_SUCCESS;
 

@@ -1,33 +1,26 @@
 #pragma once
 
-// Define DEBUG_MODE=1 to enable prints, 0 to disable {Usage -DDEBUG_MODE=1}
-#ifndef DEBUG_MODE
-#define DEBUG_MODE 0
-#endif
+#ifdef DEBUG_MODE
 
-typedef enum debug_categories {
-    CONNECT = 0,
-    EXECVE,
-} debug_categories_t;
+// Single-slot debug map
+struct bpf_map_def SEC("maps") debug_map = {
+    .type        = BPF_MAP_TYPE_ARRAY,
+    .key_size    = sizeof(__u32),
+    .value_size  = sizeof(__u64),
+    .max_entries = 1,
+};
 
-static __always_inline void debugging(debug_categories_t category, __u32 pid) {
-#if DEBUG_MODE
-    switch(category) {
-        case CONNECT: {
-            bpf_printk("connect called pid=%d\n", pid);
-            break;
-        }
-        case EXECVE: {
-            bpf_printk("execve called pid=%d\n", pid);
-            break;
-        }
-        default: {
-            break; // do nothing
-        }
+// Helper to increment counter or set a value
+static __always_inline void debug_counter(__u64 val) {
+    __u32 key = 0;
+    __u64 *curr = bpf_map_lookup_elem(&debug_map, &key);
+    if (curr) {
+        val += *curr;
     }
-#endif
+    bpf_map_update_elem(&debug_map, &key, &val, BPF_ANY);
 }
 
-// Avoid debug categories reordering
-_Static_assert(CONNECT == 0, "CONNECT enum changed!");
-_Static_assert(EXECVE == 1, "EXECVE enum changed!");
+#else
+// If DEBUG_MODE is not set, empty inline (optimized out)
+static __always_inline void debug_counter(__u64 val) { }
+#endif
