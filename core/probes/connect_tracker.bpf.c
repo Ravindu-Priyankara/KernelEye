@@ -94,4 +94,6 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   return ERR_SUCCESS;
 
- }
+}
+
+char LICENSE[] SEC("license") = "GPL";
