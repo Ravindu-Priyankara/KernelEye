@@ -92,7 +92,7 @@ static int __always_inline update_hash_map_element(void *map, const void *key, c
 *   Return:
 *       0 / -1 {0 = Success, -1 = failure}
 */
-static __always_inline int identify_the_return_request_type(int ret, int request, __u32 pid){
+static __always_inline int identify_the_return_request_type(int ret, common_syscalls request, __u32 pid){
     //validate the argivement
     if(validate_not_null_int(ret) != ERR_SUCCESS) return ERR_FAILURE;
     if(validate_not_null_int(request) != ERR_SUCCESS) return ERR_FAILURE;
@@ -110,4 +110,21 @@ static __always_inline int identify_the_return_request_type(int ret, int request
             }default: return ERR_FAILURE;   // default handler
         }
     }else return ERR_FAILURE;
+}
+
+/*
+*   This helper is used to delete the hashmap saved data.
+*   Argivements:
+*       1. map (targeted map)
+*       2. key (Hashmap key for data)
+*   Return 0 on success and -1 for failure
+*/
+static __always_inline long delete_hashmap_elements(void *map, const void *key){
+    //check availability before delete
+    void *state = check_hash_map_data_availability(map, key);
+    if(!state) return ERR_FAILURE;
+
+    //delete the map
+    long ret = bpf_map_delete_elem(map, key);
+    return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
 }
