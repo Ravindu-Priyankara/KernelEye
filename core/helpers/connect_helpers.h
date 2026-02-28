@@ -136,7 +136,7 @@ static __always_inline int copy_the_connect_event_data(__u32 pid){
     if(!event) return ERR_FAILURE;
 
     // update the map
-    ret = update_hash_map_element(&connect_map, &pid, &event, BPF_ANY);
+    ret = update_hash_map_element(&connect_map, &pid, event, BPF_ANY);
     if(ret != ERR_SUCCESS) return ERR_FAILURE;
 
     return ERR_SUCCESS;
