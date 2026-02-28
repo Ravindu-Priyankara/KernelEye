@@ -3,6 +3,8 @@
 #include "../common/common_headers.h"
 #include "../common/common_status.h"
 #include "../common/common_validation.h"
+#include "../common/common_syscalls.h"
+#include "connect_helpers.h"
 
 
 // This helper used for get the TGID from events
@@ -79,4 +81,33 @@ static int __always_inline update_hash_map_element(void *map, const void *key, c
         int ret = bpf_map_update_elem(map, key, value, flags);  // update the elements
         return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
     }else return ERR_SUCCESS; // Key already exists
+}
+
+/*
+*   This helper function is used for categorizing request types and parsing the data
+*   Argivements:
+*       1. ret (return value)
+*       2. request type(syscall name)
+*       3. pid
+*   Return:
+*       0 / -1 {0 = Success, -1 = failure}
+*/
+static __always_inline int identify_the_return_request_type(int ret, int request, __u32 pid){
+    //validate the argivement
+    if(validate_not_null_int(ret) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_int(request) != ERR_SUCCESS) return ERR_FAILURE;
+    if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_FAILURE;
+
+    //sanitize the pid
+    if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_FAILURE;
+
+    if(ret == ERR_SUCCESS){
+        //  successful attempts
+        switch(request){
+            case CONNECT:{
+                //This helper function located at `connect_helpers.h` file 
+                return copy_the_connect_event_data(pid);
+            }default: return ERR_FAILURE;   // default handler
+        }
+    }else return ERR_FAILURE;
 }
