@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include <stddef.h>
-
 // used for support ipv4 + ipv6
 // total bytes 24 bytes
 struct ke_sockaddr {
