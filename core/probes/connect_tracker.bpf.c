@@ -145,6 +145,8 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   //remove temp map data
   ret = delete_hashmap_elements(&tmp_connect_map, &pid);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+  return ERR_SUCCESS;
 }
 
 char LICENSE[] SEC("license") = "GPL"; 
