@@ -127,6 +127,10 @@ static int __always_inline parse_socket_address(const int family, const void *us
 *   Return 0 / -1 {0 = success, -1 = failure}
 */
 static __always_inline int copy_the_connect_event_data(__u32 pid){
+    //forward declarations
+    static __always_inline void *check_hash_map_data_availability(void *map, const void *key);
+    static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags);
+    
     // event struct for copy 
     struct connect_event *event;
     // for hold return value
