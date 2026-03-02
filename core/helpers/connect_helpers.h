@@ -132,7 +132,7 @@ static __always_inline int copy_the_connect_event_data(__u32 pid){
     // for hold return value
     int ret;
     // get the data
-    event = check_hash_map_data_availability(&tmp_connect_map ,pid);
+    event = check_hash_map_data_availability(&tmp_connect_map ,&pid);
     if(!event) return ERR_FAILURE;
 
     // update the map
