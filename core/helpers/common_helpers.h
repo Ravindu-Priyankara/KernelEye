@@ -6,31 +6,46 @@
 #include "../common/common_syscalls.h"
 #include "connect_helpers.h"
 
-
-// This helper used for get the TGID from events
+/*
+* This helper used for get the TGID from events
+* Stack Allocation: 0 bytes
+*/
 static __u32 __always_inline get_tgid(void){
     return bpf_get_current_pid_tgid() >> 32; // return tgid
 }
 
-// This heler used for get the PID from events
+/*
+* This heler used for get the PID from events
+* Stack Allocation: 0 bytes
+*/
 static __u32 __always_inline get_pid(void){
     return (__u32)bpf_get_current_pid_tgid();
 }
 
-// This helper used for get the PPID from task struct
+/*
+* This helper used for get the PPID from task struct
+* Stack Allocation: 24 bytes
+*/
 static __u32 __always_inline get_ppid(void){
-    // get current task pointer
+    /* 
+    * Get the current task pointer
+    * Stack Allocation: 8 bytes
+    */
     struct task_struct  *task = (struct task_struct *)bpf_get_current_task();
     if(validate_not_null(task)!= ERR_SUCCESS) return 0;
 
-    // prepare a parent pointer for parent
+    /*
+    * Prepare a parent pointer for parent
+    * Stack Allocation: 8 bytes
+    */
     struct task_struct *parent = NULL;
 
     // read real parent safly
     bpf_core_read(&parent, sizeof(parent), &task->real_parent);
     if(validate_not_null(parent) != ERR_SUCCESS) return 0;
 
-    //for hold ppid
+    // for hold ppid
+    // Stack Allocation: 4 bytes
     __u32 ppid = 0;
 
     // get parent tgid
@@ -48,6 +63,7 @@ static __u32 __always_inline get_ppid(void){
 *   Return:
 *       1. NULL (not found valid data)
 *       2. Generic pointer(void *) to the value associated with the key.
+*   Stack Allocation: 0 bytes
 */
 static __always_inline void *check_hash_map_data_availability(void *map, const void *key){
     //prevent null data
@@ -69,15 +85,18 @@ static __always_inline void *check_hash_map_data_availability(void *map, const v
 *       4. flags (commonly used BPF_ANY, but it depends on incident)
 *   Return:
 *       0 / -1 {0 = Success, -1 = failure}
+*   Stack Allocation: 16 bytes
 */
 static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags){
     //prevent null data
     if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
 
+    // 8 bytes of stack allocation
     void *state = check_hash_map_data_availability(map, key);
 
     // not existing data
     if(!state){
+        // 4 bytes of stack allocation
         int ret = bpf_map_update_elem(map, key, value, flags);  // update the elements
         return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
     }else return ERR_SUCCESS; // Key already exists
@@ -91,6 +110,7 @@ static int __always_inline update_hash_map_element(void *map, const void *key, c
 *       3. pid
 *   Return:
 *       0 / -1 {0 = Success, -1 = failure}
+*   Stack Allocation: 0 bytes
 */
 static __always_inline int identify_the_return_request_type(int ret, common_syscalls request, __u32 pid){
     //validate the argivement
@@ -118,13 +138,16 @@ static __always_inline int identify_the_return_request_type(int ret, common_sysc
 *       1. map (targeted map)
 *       2. key (Hashmap key for data)
 *   Return 0 on success and -1 for failure
+*   Stack Allocation: 16 bytes
 */
 static __always_inline long delete_hashmap_elements(void *map, const void *key){
     //check availability before delete
+    // 8 bytes of stack allocation
     void *state = check_hash_map_data_availability(map, key);
     if(!state) return ERR_FAILURE;
 
     //delete the map
+    // 8 bytes of stack allocation
     long ret = bpf_map_delete_elem(map, key);
     return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
 }

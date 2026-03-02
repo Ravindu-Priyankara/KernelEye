@@ -17,12 +17,14 @@ static int __always_inline update_hash_map_element(void *map, const void *key, c
 *   This helper's main task is identify the socket family type and return it to the requester.
 *   Argivements:   general sockaddr struct
 *   Return: socket family type
+*   Stack Allocation: 8 bytes
 */
 static int __always_inline get_socket_family(const struct sockaddr *sa){
     //prevent null data
     if(validate_not_null(sa) != ERR_SUCCESS) return ERR_FAILURE;
 
     // Take socket family snapshot
+    // 2 bytes of stack allocation
     __u16 family = sa->sa_family;
 
     // For identify IPV4 and IPV6 socket family types
@@ -42,6 +44,7 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 *       2. struct for hold socket data
 *
 *   Return 0 / -1 {0 = Success, -1 = failure}
+*   Stack Allocation: 16 bytes
 */
 static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
@@ -50,6 +53,7 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event 
     /*  This struct helps to extract ipv4
     *       1. ip address
     *       2. port number
+    *   Stack Allocation: 16 bytes
     */
     struct sockaddr_in sin = {};
 
@@ -71,6 +75,7 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event 
 *       2. struct for hold socket data
 *
 *   Return 0 / -1 {0 = Success, -1 = failure}
+*   Stack Allocation: 32 bytes
 */
 static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
@@ -79,6 +84,7 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event 
     /*  This struct helps to extract ipv6
     *       1. ip address
     *       2. port number
+    *   Stack Allocation: 28 bytes
     */
     struct sockaddr_in6 sin6 = {};
 
@@ -104,6 +110,7 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event 
 *       3. struct for hold socket details
 *   
 *   Return 0 / -1 {0 = success, -1 = failure}
+*   Stack Allocation 0 bytes
 */
 static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
@@ -127,12 +134,15 @@ static int __always_inline parse_socket_address(const int family, const void *us
 *   Argivements:
 *       1. pid (process id {hashmap key})
 *   Return 0 / -1 {0 = success, -1 = failure}
+*   Stack Allocation: 16 bytes
 */
 static __always_inline int copy_the_connect_event_data(__u32 pid){
 
     // event struct for copy 
+    // 8 bytes of stack allocation
     struct connect_event *event;
     // for hold return value
+    // 4 bytes of stack allocation
     int ret;
     // get the data
     event = check_hash_map_data_availability(&tmp_connect_map ,&pid);
