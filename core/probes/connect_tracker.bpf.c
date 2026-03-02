@@ -19,8 +19,12 @@
 #include "../common/common_validation.h"
 #include "../common/common_status.h"
 #include "../common/common_debugging.h"
+#include "../common/common_syscalls.h"
 
-
+/*
+* This tracepoint is triggered when programs use the `connect syscall`. 
+* Argivement info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
+*/
 SEC("tracepoint/syscalls/sys_enter_connect")
 int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   /*
@@ -71,10 +75,9 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
   if(ret < 0) return 0;
 
-  // for get tgid
-  pid = get_tgid();
-  ppid = get_ppid();
-  net_ts = bpf_ktime_get_ns();
+  pid = get_tgid(); // process id
+  ppid = get_ppid(); // parent process id
+  net_ts = bpf_ktime_get_ns(); // connect syscall triggered time(nano seconds)
 
   // prevent null values
   if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
@@ -90,7 +93,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   event.net_ts = net_ts;
 
   //update the hash map
-  ret = update_hash_map_element(&connect_map, &pid, &event, BPF_ANY);
+  ret = update_hash_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
@@ -102,4 +105,48 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
 }
 
-char LICENSE[] SEC("license") = "GPL";
+SEC("tracepoint/syscalls/sys_exit_connect")
+int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
+  /*
+  * For hold return value
+  * Stack Allocation: 4 bytes
+  */
+  long ret;
+
+  /*
+  * for hold pid value
+  * Stack Allocation: 4 bytes
+  */
+  __u32 pid;
+
+  /*
+    * This struct used for hold our IPV4 or IPV6 data
+    * Stack Allocation: 40 bytes
+  */
+  struct connect_event event = {};
+
+  //get the pid for filter data
+  pid = get_tgid();
+
+  // get the retun value
+  ret = ctx->ret;
+
+  // prevent null values
+  if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+  if(validate_not_null_long(ret) != ERR_SUCCESS) return ERR_SUCCESS;
+
+  //sanitize the pid
+  if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+
+  // update the correct map
+  ret = identify_the_return_request_type(ret, CONNECT, pid);
+  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+  //remove temp map data
+  ret = delete_hashmap_elements(&tmp_connect_map, &pid);
+  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+  return ERR_SUCCESS;
+}
+
+char LICENSE[] SEC("license") = "GPL"; 

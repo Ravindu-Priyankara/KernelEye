@@ -5,10 +5,13 @@
 #include "../common/common_sockets.h"
 #include "../common/common_status.h"
 #include "../common/common_validation.h"
+#include "../maps/maps.h"
 
 // Forward declarations
 static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event);
 static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event);
+static __always_inline void *check_hash_map_data_availability(void *map, const void *key);
+static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags);
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
@@ -116,4 +119,28 @@ static int __always_inline parse_socket_address(const int family, const void *us
         }
         default: return ERR_FAILURE;   // Other socket categories
     }
+}
+/*
+*   This helper has two main tasks
+*       1. copy the event data
+*       2. update the hashmap
+*   Argivements:
+*       1. pid (process id {hashmap key})
+*   Return 0 / -1 {0 = success, -1 = failure}
+*/
+static __always_inline int copy_the_connect_event_data(__u32 pid){
+
+    // event struct for copy 
+    struct connect_event *event;
+    // for hold return value
+    int ret;
+    // get the data
+    event = check_hash_map_data_availability(&tmp_connect_map ,&pid);
+    if(!event) return ERR_FAILURE;
+
+    // update the map
+    ret = update_hash_map_element(&connect_map, &pid, event, BPF_ANY);
+    if(ret != ERR_SUCCESS) return ERR_FAILURE;
+
+    return ERR_SUCCESS;
 }

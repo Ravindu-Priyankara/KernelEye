@@ -28,7 +28,13 @@ static int __always_inline validate_not_null_u64(const __u64 key){
     return key ? ERR_SUCCESS : ERR_FAILURE;
 }
 
+//__32 value validation
 static int __always_inline validate_not_null_u32(const __u32 key){
+    return key ? ERR_SUCCESS : ERR_FAILURE;
+}
+
+// long value validation
+static int __always_inline validate_not_null_long(const long key){
     return key ? ERR_SUCCESS : ERR_FAILURE;
 }
 
