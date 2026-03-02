@@ -17,7 +17,7 @@ all: $(COMMON_DIR)/vmlinux.h $(BPF_OBJS)
 # Generate vmlinux.h if missing or outdated
 $(COMMON_DIR)/vmlinux.h:
 	@echo "Generating vmlinux.h..."
-	sudo bpftool btf dump file /sys/kernel/debug/tracing/vmlinux format c > $@
+	sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > $@
 
 # Compile BPF programs
 $(BUILD_DIR)/%.bpf.o: $(PROBES_DIR)/%.bpf.c $(COMMON_DIR)/vmlinux.h
