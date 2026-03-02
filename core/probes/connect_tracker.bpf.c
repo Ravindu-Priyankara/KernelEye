@@ -129,7 +129,7 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   pid = get_tgid();
 
   // get the retun value
-  ret = ctx->args[0];
+  ret = ctx->ret;
 
   // prevent null values
   if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
