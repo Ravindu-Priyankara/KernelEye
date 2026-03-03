@@ -39,6 +39,14 @@ struct connect_event{
     struct ke_sockaddr addr;    // used for support few socket families
 };
 
+// This struct use for tracking execve events with hashmap
+//Total byte count is 272 bytes
+struct execve_event{
+    __u32 ppid; // parent process id
+    __u64 execve_ts;    // execve triggered timestamp
+    char filename[256]; // filename {ex: '/bin/sh'}
+}
+
 /*************************************
 ******** Common Event Header *********
 *************************************/
