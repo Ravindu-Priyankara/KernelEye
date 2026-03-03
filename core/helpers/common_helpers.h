@@ -23,6 +23,14 @@ static __u32 __always_inline get_pid(void){
 }
 
 /*
+* This helper used for get syscall trigger time(nano seconds)
+* Stack Allocation: 0 bytes
+*/
+static __u64 get_trigger_time(void){
+    return bpf_ktime_get_ns();
+}
+
+/*
 * This helper used for get the PPID from task struct
 * Stack Allocation: 24 bytes
 */
