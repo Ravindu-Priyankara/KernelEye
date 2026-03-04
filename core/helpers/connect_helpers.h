@@ -10,8 +10,8 @@
 // Forward declarations
 static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event);
 static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event);
-static __always_inline void *check_hash_map_data_availability(void *map, const void *key);
-static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags);
+static __always_inline void *check_map_data_availability(void *map, const void *key);
+static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags);
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
@@ -145,11 +145,11 @@ static __always_inline int copy_the_connect_event_data(__u32 pid){
     // 4 bytes of stack allocation
     int ret;
     // get the data
-    event = check_hash_map_data_availability(&tmp_connect_map ,&pid);
+    event = check_map_data_availability(&tmp_connect_map ,&pid);
     if(!event) return ERR_FAILURE;
 
     // update the map
-    ret = update_hash_map_element(&connect_map, &pid, event, BPF_ANY);
+    ret = update_map_element(&connect_map, &pid, event, BPF_ANY);
     if(ret != ERR_SUCCESS) return ERR_FAILURE;
 
     return ERR_SUCCESS;

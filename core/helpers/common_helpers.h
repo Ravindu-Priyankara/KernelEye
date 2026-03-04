@@ -64,7 +64,7 @@ static __u32 __always_inline get_ppid(void){
 }
 
 /*
-*   This function use for check hash map data availability
+*   This function use for check map data availability
 *   Argivements:
 *       1. map
 *       2. key (Mainly PID is the key)
@@ -73,7 +73,7 @@ static __u32 __always_inline get_ppid(void){
 *       2. Generic pointer(void *) to the value associated with the key.
 *   Stack Allocation: 0 bytes
 */
-static __always_inline void *check_hash_map_data_availability(void *map, const void *key){
+static __always_inline void *check_map_data_availability(void *map, const void *key){
     //prevent null data
     if(validate_not_null_duel(map, key) != ERR_SUCCESS) return 0;
 
@@ -95,12 +95,12 @@ static __always_inline void *check_hash_map_data_availability(void *map, const v
 *       0 / -1 {0 = Success, -1 = failure}
 *   Stack Allocation: 16 bytes
 */
-static int __always_inline update_hash_map_element(void *map, const void *key, const void *value, __u64 flags){
+static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags){
     //prevent null data
     if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
 
     // 8 bytes of stack allocation
-    void *state = check_hash_map_data_availability(map, key);
+    void *state = check_map_data_availability(map, key);
 
     // not existing data
     if(!state){
@@ -148,10 +148,10 @@ static __always_inline int identify_the_return_request_type(int ret, common_sysc
 *   Return 0 on success and -1 for failure
 *   Stack Allocation: 16 bytes
 */
-static __always_inline long delete_hashmap_elements(void *map, const void *key){
+static __always_inline long delete_map_elements(void *map, const void *key){
     //check availability before delete
     // 8 bytes of stack allocation
-    void *state = check_hash_map_data_availability(map, key);
+    void *state = check_map_data_availability(map, key);
     if(!state) return ERR_FAILURE;
 
     //delete the map

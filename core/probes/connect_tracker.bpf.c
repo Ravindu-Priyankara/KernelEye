@@ -110,7 +110,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   pid = get_tgid(); // process id
   ppid = get_ppid(); // parent process id
-  net_ts = bpf_ktime_get_ns(); // connect syscall triggered time(nano seconds)
+  net_ts = get_trigger_time() // connect syscall triggered time(nano seconds)
 
   // prevent null values
   if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
@@ -181,7 +181,7 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   //remove temp map data
-  ret = delete_hashmap_elements(&tmp_connect_map, &pid);
+  ret = delete_map_elements(&tmp_connect_map, &pid);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   return ERR_SUCCESS;
