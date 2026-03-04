@@ -44,6 +44,14 @@ struct {
     __type(value, struct connect_event);   // This struct hold the all connect events data
 }tmp_connect_map SEC(".maps");  // hashmap name
 
+// This hashmap used for temporary store execve events
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);   // map type
+    __uint(max_entries, HASHMAP_SIZE); // hashmap size
+    __type(key, __u32); // pid
+    __type(value, struct execve_event); // struct for hold data
+} tmp_execve_hash_map SEC(".maps"); // hashmap name
+
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
