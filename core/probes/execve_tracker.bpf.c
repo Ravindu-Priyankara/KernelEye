@@ -1,6 +1,6 @@
 #include "../common/common_headers.h"
 #include "../common/common_structs.h"
-#include "../common/common_helpers.h"
+#include "../helpers/common_helpers.h"
 
 SEC("tracepoint/syscalls/sys_enter_execve")
 int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
