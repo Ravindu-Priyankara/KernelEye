@@ -45,7 +45,7 @@ struct execve_event{
     __u32 ppid; // parent process id
     __u64 execve_ts;    // execve triggered timestamp
     char filename[256]; // filename {ex: '/bin/sh'}
-}
+};
 
 /*************************************
 ******** Common Event Header *********

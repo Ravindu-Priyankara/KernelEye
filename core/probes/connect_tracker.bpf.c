@@ -110,7 +110,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   pid = get_tgid(); // process id
   ppid = get_ppid(); // parent process id
-  net_ts = get_trigger_time() // connect syscall triggered time(nano seconds)
+  net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
 
   // prevent null values
   if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
@@ -126,7 +126,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   event.net_ts = net_ts;
 
   //update the hash map
-  ret = update_hash_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
+  ret = update_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
