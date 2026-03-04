@@ -15,7 +15,7 @@ static int __always_inline update_map_element(void *map, const void *key, const 
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
-*   Argivements:   general sockaddr struct
+*   Arguents:   general sockaddr struct
 *   Return: socket family type
 *   Stack Allocation: 8 bytes
 */
@@ -39,7 +39,7 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 
 /*
 *   This helper function used to extract ipv4 data
-*   Argivements:
+*   Arguments:
 *       1. pointer to the general sockaddr
 *       2. struct for hold socket data
 *
@@ -70,7 +70,7 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event 
 
 /*
 *   This helper function used to extract ipv6 data
-*   Argivements:
+*   Arguments:
 *       1. pointer to the general sockaddr
 *       2. struct for hold socket data
 *
@@ -104,7 +104,7 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event 
 
 /*
 *   This helper function is used to pass socket details to the correct functions. According to the socket family
-*   Argivements
+*   Arguments
 *       1. family type(AF_INET, AF_INET6)
 *       2. pointer to the general sockaddr
 *       3. struct for hold socket details
@@ -131,7 +131,7 @@ static int __always_inline parse_socket_address(const int family, const void *us
 *   This helper has two main tasks
 *       1. copy the event data
 *       2. update the hashmap
-*   Argivements:
+*   Arguments:
 *       1. pid (process id {hashmap key})
 *   Return 0 / -1 {0 = success, -1 = failure}
 *   Stack Allocation: 16 bytes

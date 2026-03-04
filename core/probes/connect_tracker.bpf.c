@@ -52,7 +52,7 @@
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
-* Argivement info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
+* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
 * If IPV4:
 *   1. Stack Allocation: 120 bytes
 * If IPV6
@@ -140,7 +140,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
 /*
 * This tracepoint is used to filter out successful connections
-* Argivement info: cat /sys/kernel/debug/tracing/events/syscalls/sys_exit_connect/format
+* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_exit_connect/format
 * Stack Allocation: 96 bytes
 */
 SEC("tracepoint/syscalls/sys_exit_connect")

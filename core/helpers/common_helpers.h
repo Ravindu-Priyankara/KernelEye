@@ -65,7 +65,7 @@ static __u32 __always_inline get_ppid(void){
 
 /*
 *   This function use for check map data availability
-*   Argivements:
+*   Arguments:
 *       1. map
 *       2. key (Mainly PID is the key)
 *   Return:
@@ -86,7 +86,7 @@ static __always_inline void *check_map_data_availability(void *map, const void *
 *           * Check data already stored or not.
 *       Task 2:
 *           * If there wasn't data. Write values from maps
-*   Argivements:
+*   Arguments:
 *       1. map
 *       2. key (Mainly PID is the key)
 *       3. value (data fields ex:- ipv4 addr, ipv6 addr, port)
@@ -112,7 +112,7 @@ static int __always_inline update_map_element(void *map, const void *key, const 
 
 /*
 *   This helper function is used for categorizing request types and parsing the data
-*   Argivements:
+*   Arguments:
 *       1. ret (return value)
 *       2. request type(syscall name)
 *       3. pid
@@ -121,7 +121,7 @@ static int __always_inline update_map_element(void *map, const void *key, const 
 *   Stack Allocation: 0 bytes
 */
 static __always_inline int identify_the_return_request_type(int ret, common_syscalls request, __u32 pid){
-    //validate the argivement
+    //validate the argument
     if(validate_not_null_int(ret) != ERR_SUCCESS) return ERR_FAILURE;
     if(validate_not_null_int(request) != ERR_SUCCESS) return ERR_FAILURE;
     if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_FAILURE;
@@ -142,7 +142,7 @@ static __always_inline int identify_the_return_request_type(int ret, common_sysc
 
 /*
 *   This helper is used to delete the hashmap saved data.
-*   Argivements:
+*   Arguments:
 *       1. map (targeted map)
 *       2. key (Hashmap key for data)
 *   Return 0 on success and -1 for failure
