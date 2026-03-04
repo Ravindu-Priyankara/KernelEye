@@ -54,16 +54,16 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     if(!tmp_event) return 0;
 
     // copy to scratchpad(PERCPU ARRAY)
-    if(bpf_probe_read_user_str(tmp->filename, sizeof(tmp->filename), (void *)ctx->args[0]) < 0) return 0;
+    if(bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]) < 0) return 0;
 
     // assign values{ppid, execution time}
-    tmp->ppid = ppid;
-    tmp->execve_ts = execve_ts;
+    tmp_event->ppid = ppid;
+    tmp_event->execve_ts = execve_ts;
 
     // Copy scratchpad → HASH map (persistent storage)
-    if()
+    if(update_map_element(&tmp_execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
-
+    return 0;
 }
 
 //License
