@@ -66,5 +66,43 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     return 0;
 }
 
+SEC("tracepoint/syscalls/sys_exit_execve")
+int execve_exit_handler(struct trace_event_raw_sys_exit *ctx){
+    /*
+    *   For hold return value
+    *   Stack Allocation: 4 bytes
+    */
+    long ret;
+
+    /*
+    *   for hold pid value
+    *   Stack Allocation: 4 bytes
+    */
+    __u32 pid;
+
+    //get the return value
+    ret = ctx->ret;
+
+    // get the pid
+    pid = get_tgid();
+
+    //prevent null values 
+    if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+    if(validate_not_null_long(ret) != ERR_SUCCESS) return ERR_SUCCESS;
+
+    //sanitize the pid
+    if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+
+    // update the correct map
+    ret = identify_the_return_request_type(ret, EXECVE, pid);
+    if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+    // remove the temp map data
+    ret = delete_map_elements(&tmp_execve_hash_map, &pid);
+    if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+    return ERR_SUCCESS;
+}
+
 //License
 char LICENSE[] SEC("license") = "GPL"; 

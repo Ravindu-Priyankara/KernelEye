@@ -52,7 +52,7 @@ struct {
     __type(value, struct execve_event); // struct for hold data
 } tmp_execve_hash_map SEC(".maps"); // hashmap name
 
-// This hashmap used for track execve events {permenet struct}
+// This hashmap used for track execve events {permanent struct}
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);   // map type
     __uint(max_entries, HASHMAP_SIZE); // hashmap size

@@ -5,6 +5,7 @@
 #include "../common/common_validation.h"
 #include "../common/common_syscalls.h"
 #include "connect_helpers.h"
+#include "execve_helpers.h"
 
 /*
 * This helper used for get the TGID from events
@@ -135,7 +136,10 @@ static __always_inline int identify_the_return_request_type(int ret, common_sysc
             case CONNECT:{
                 //This helper function located at `connect_helpers.h` file 
                 return copy_the_connect_event_data(pid);
-            }default: return ERR_FAILURE;   // default handler
+            }case EXECVE: {
+                return copy_the_execve_event_data(pid);
+            }
+            default: return ERR_FAILURE;   // default handler
         }
     }else return ERR_FAILURE;
 }
