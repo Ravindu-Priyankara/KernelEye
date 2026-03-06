@@ -9,6 +9,35 @@
  *
  * Author: Ravindu Priyankara
  * Year: 2026
+ *
+ * ============ Stack Usage ==================================
+ *
+ *  Real Verifier Stack Depth:
+ *    Command: sudo bpftool prog dump xlated id <id>
+ *    Result : Maximum stack depth = 100 bytes
+ *
+ *  Manual Stack Estimation (Pre-verifier Calculation):
+ *    sys_enter_connect:
+ *        - IPv4 path  ≈ 120 bytes
+ *        - IPv6 path  ≈ 136 bytes
+ *
+ *    sys_exit_connect:
+ *        - ≈ 96 bytes
+ *
+ *  Note:
+ *    Manual calculations are approximate and may differ due to
+ *    compiler optimizations, stack slot reuse, and verifier analysis.
+ *
+* 
+ * ============ Instruction Count ============================
+ *
+ *  Real Instruction Count:
+ *    sudo bpftool prog dump xlated id <id>
+ *    Result: 143 instructions
+ *
+ *  Byte Size:
+ *    xlated 1144B  (1144 / 8 = 143 instructions)
+ * ===========================================================
 */
 
 #include "../common/common_headers.h"
@@ -23,7 +52,11 @@
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
-* Argivement info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
+* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
+* If IPV4:
+*   1. Stack Allocation: 120 bytes
+* If IPV6
+*   1. Stack Allocation: 136 bytes
 */
 SEC("tracepoint/syscalls/sys_enter_connect")
 int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -77,7 +110,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   pid = get_tgid(); // process id
   ppid = get_ppid(); // parent process id
-  net_ts = bpf_ktime_get_ns(); // connect syscall triggered time(nano seconds)
+  net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
 
   // prevent null values
   if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
@@ -93,7 +126,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   event.net_ts = net_ts;
 
   //update the hash map
-  ret = update_hash_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
+  ret = update_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
@@ -105,6 +138,11 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
 }
 
+/*
+* This tracepoint is used to filter out successful connections
+* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_exit_connect/format
+* Stack Allocation: 96 bytes
+*/
 SEC("tracepoint/syscalls/sys_exit_connect")
 int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   /*
@@ -143,7 +181,7 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   //remove temp map data
-  ret = delete_hashmap_elements(&tmp_connect_map, &pid);
+  ret = delete_map_elements(&tmp_connect_map, &pid);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   return ERR_SUCCESS;

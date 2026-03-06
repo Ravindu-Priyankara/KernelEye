@@ -33,7 +33,7 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
     __type(key, __u32); // key = pid
-    __type(value, struct connect_event);   // connect events data holding this struct
+    __type(value, struct connect_event);   // This struct hold the all connect events data
 }connect_map SEC(".maps");  // hashmap name
 
 //This hashmap used for temporary store connect events
@@ -41,8 +41,37 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
     __type(key, __u32); // key = pid
-    __type(value, struct connect_event);   // connect events data holding this struct
+    __type(value, struct connect_event);   // This struct hold the all connect events data
 }tmp_connect_map SEC(".maps");  // hashmap name
+
+// This hashmap used for temporary store execve events
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);   // map type
+    __uint(max_entries, HASHMAP_SIZE); // hashmap size
+    __type(key, __u32); // pid
+    __type(value, struct execve_event); // struct for hold data
+} tmp_execve_hash_map SEC(".maps"); // hashmap name
+
+// This hashmap used for track execve events {permanent struct}
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);   // map type
+    __uint(max_entries, HASHMAP_SIZE); // hashmap size
+    __type(key, __u32); // pid
+    __type(value, struct execve_event); // struct for hold data
+} execve_hash_map SEC(".maps");
+
+/****************************************
+*********** Per CPU Array Maps **********
+*****************************************/
+
+// This per cpu array maps are used as temporary storage to hold execve syscall data. And the main purpose is reduce stack size.
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);    //MAP TYPE
+    __uint(max_entries, 1); // We need only 1 entry per cpu
+    __type(key, __u32); // We have only 1 entry, and it means our key is 0.
+    __type(value, struct execve_event);    // This struct hold the all execve event data temporary
+}tmp_execve_map SEC(".maps");
+
 
 /*******************************
 ****** Streaming Maps **********

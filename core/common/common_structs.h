@@ -39,6 +39,14 @@ struct connect_event{
     struct ke_sockaddr addr;    // used for support few socket families
 };
 
+// This struct use for tracking execve events with hashmap
+//Total byte count is 272 bytes
+struct execve_event{
+    __u32 ppid; // parent process id
+    __u64 execve_ts;    // execve triggered timestamp
+    char filename[256]; // filename {ex: '/bin/sh'}
+};
+
 /*************************************
 ******** Common Event Header *********
 *************************************/
@@ -119,6 +127,9 @@ _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismat
 
 // ke_reverse_shell_payload must remain 296 bytes
 _Static_assert(sizeof(struct ke_reverse_shell_payload) == 296,"ke_reverse_shell_payload size mismatch!");
+
+// execve_event must remain 272 bytes 
+_Static_assert(sizeof(struct execve_event) == 272, "execve_event struct size mismatch!");
 
 // Protect reordering structs
 _Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");
