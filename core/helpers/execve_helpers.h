@@ -5,7 +5,7 @@
 
 //forward declaration
 static __always_inline void *check_map_data_availability(void *map, const void *key);
-static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags);
+static __always_inline int update_map_element(void *map, const void *key, const void *value, __u64 flags);
 
 static __always_inline int copy_the_execve_event_data(__u32 pid){
     // execve event struct for copying data from the temporary hash map

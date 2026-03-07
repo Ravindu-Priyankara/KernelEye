@@ -8,10 +8,10 @@
 #include "../maps/maps.h"
 
 // Forward declarations
-static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event);
-static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event);
+static __always_inline int parse_ipv4(const void *usr_ptr, struct connect_event *event);
+static __always_inline int parse_ipv6(const void *usr_ptr, struct connect_event *event);
 static __always_inline void *check_map_data_availability(void *map, const void *key);
-static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags);
+static __always_inline int update_map_element(void *map, const void *key, const void *value, __u64 flags);
 
 /*
 *   This helper's main task is identify the socket family type and return it to the requester.
@@ -19,7 +19,7 @@ static int __always_inline update_map_element(void *map, const void *key, const 
 *   Return: socket family type
 *   Stack Allocation: 8 bytes
 */
-static int __always_inline get_socket_family(const struct sockaddr *sa){
+static __always_inline int get_socket_family(const struct sockaddr *sa){
     //prevent null data
     if(validate_not_null(sa) != ERR_SUCCESS) return ERR_FAILURE;
 
@@ -46,7 +46,7 @@ static int __always_inline get_socket_family(const struct sockaddr *sa){
 *   Return 0 / -1 {0 = Success, -1 = failure}
 *   Stack Allocation: 16 bytes
 */
-static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event *event){
+static __always_inline int parse_ipv4(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
 
@@ -77,7 +77,7 @@ static int __always_inline parse_ipv4(const void *usr_ptr, struct connect_event 
 *   Return 0 / -1 {0 = Success, -1 = failure}
 *   Stack Allocation: 32 bytes
 */
-static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event *event){
+static __always_inline int parse_ipv6(const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;
     
@@ -112,7 +112,7 @@ static int __always_inline parse_ipv6(const void *usr_ptr, struct connect_event 
 *   Return 0 / -1 {0 = success, -1 = failure}
 *   Stack Allocation 0 bytes
 */
-static int __always_inline parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
+static __always_inline int parse_socket_address(const int family, const void *usr_ptr, struct connect_event *event){
     // This validation helps to prevent NULL data.
     if(validate_not_null_int(family) != ERR_SUCCESS) return ERR_FAILURE;
     if(validate_not_null_duel(usr_ptr, event) != ERR_SUCCESS) return ERR_FAILURE;

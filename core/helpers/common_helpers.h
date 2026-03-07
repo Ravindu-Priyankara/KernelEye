@@ -11,7 +11,7 @@
 * This helper used for get the TGID from events
 * Stack Allocation: 0 bytes
 */
-static __u32 __always_inline get_tgid(void){
+static __always_inline __u32 get_tgid(void){
     return bpf_get_current_pid_tgid() >> 32; // return tgid
 }
 
@@ -19,7 +19,7 @@ static __u32 __always_inline get_tgid(void){
 * This heler used for get the PID from events
 * Stack Allocation: 0 bytes
 */
-static __u32 __always_inline get_pid(void){
+static __always_inline __u32 get_pid(void){
     return (__u32)bpf_get_current_pid_tgid();
 }
 
@@ -27,7 +27,7 @@ static __u32 __always_inline get_pid(void){
 * This helper used for get syscall trigger time(nano seconds)
 * Stack Allocation: 0 bytes
 */
-static __u64 get_trigger_time(void){
+static __always_inline __u64 get_trigger_time(void){
     return bpf_ktime_get_ns();
 }
 
@@ -35,7 +35,7 @@ static __u64 get_trigger_time(void){
 * This helper used for get the PPID from task struct
 * Stack Allocation: 24 bytes
 */
-static __u32 __always_inline get_ppid(void){
+static __always_inline __u32 get_ppid(void){
     /* 
     * Get the current task pointer
     * Stack Allocation: 8 bytes
@@ -96,7 +96,7 @@ static __always_inline void *check_map_data_availability(void *map, const void *
 *       0 / -1 {0 = Success, -1 = failure}
 *   Stack Allocation: 16 bytes
 */
-static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags){
+static __always_inline int update_map_element(void *map, const void *key, const void *value, __u64 flags){
     //prevent null data
     if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
 
