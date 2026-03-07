@@ -49,6 +49,7 @@
 #include "../common/common_status.h"
 #include "../common/common_debugging.h"
 #include "../common/common_syscalls.h"
+#include "../helpers/event_helpers.h"
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
