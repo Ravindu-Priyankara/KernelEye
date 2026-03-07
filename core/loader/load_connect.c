@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include "loader.h"
 
+// Load the connect_tracker eBPF program and return its skeleton handle
 struct connect_tracker_bpf *load_connect_probe(){
     // eBPF skeleton for connect tracker
     struct connect_tracker_bpf *skel;
 
-    // opening the BPF ELF program
+    // open the BPF ELF program
     skel = connect_tracker_bpf__open();
     if(!skel){
         fprintf(stderr, "Failed to open connect tracker!\n");
