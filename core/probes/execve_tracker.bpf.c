@@ -1,6 +1,7 @@
 #include "../common/common_headers.h"
 #include "../common/common_structs.h"
 #include "../helpers/common_helpers.h"
+#include "../helpers/event_helpers.h"
 
 SEC("tracepoint/syscalls/sys_enter_execve")
 int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -100,6 +101,11 @@ int execve_exit_handler(struct trace_event_raw_sys_exit *ctx){
     // remove the temp map data
     ret = delete_map_elements(&tmp_execve_hash_map, &pid);
     if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+
+    // check is that suspiecious
+    if(check_map_data_availability(&connect_map ,&pid)){
+        if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+    }
 
     return ERR_SUCCESS;
 }
