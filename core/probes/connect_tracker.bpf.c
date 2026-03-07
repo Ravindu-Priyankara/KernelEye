@@ -184,6 +184,11 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   ret = delete_map_elements(&tmp_connect_map, &pid);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
+  // check is that suspiecious
+  if(check_map_data_availability(&execve_hash_map ,&pid)){
+      if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+  }
+
   return ERR_SUCCESS;
 }
 
