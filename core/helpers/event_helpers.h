@@ -56,7 +56,7 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     __builtin_memcpy(r_event->data.filename, exe_event->filename, sizeof(r_event->data.filename));
 
     //copy the ke_sockaddr struct
-    __builtin_memcpy(&r_event->data.addr, &conn_event->addr, sizeod(struct ke_sockaddr));
+    __builtin_memcpy(&r_event->data.addr, &conn_event->addr, sizeof(struct ke_sockaddr));
     
     // submit the values
     bpf_ringbuf_submit(r_event, 0);
