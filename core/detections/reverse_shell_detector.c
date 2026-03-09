@@ -9,16 +9,16 @@
 *       1. execve syscall trigger time
 *       2. connect syscall trigger time
 *   Return:
-*       1. struct {ke_detection_result}
+*       1. pointer {reference ke_detection_result}
 */
-struct ke_detection_result reverse_shell_time_correlation(__u64 execve_ts, __u64 net_ts){
+struct ke_detection_result *reverse_shell_time_correlation(__u64 execve_ts, __u64 net_ts){
 
     // for hold detection result
-    struct ke_detection_result result = {0};
+    struct ke_detection_result *result;
 
     // prevent missing timestamps & also return empty result
     if(execve_ts == 0 || net_ts == 0){
-        fprintf(stderr,"[ERROR] Missing timestamp\n");
+        fprintf(stderr,"[ERROR]. Missing timestamp\n");
         return result;
     }
 
@@ -28,10 +28,10 @@ struct ke_detection_result reverse_shell_time_correlation(__u64 execve_ts, __u64
     *       2. execve syscall
     *   Therefore, we should add a 40 score for this.
     */
-    result.detection_id = KE_DET_CONNECT_WITHEXECVE;
-    result.score = 40;
-    result.severity = KE_SEV_INFO;
-    result.detected = true;
+    result->detection_id = KE_DET_CONNECT_WITHEXECVE;
+    result->score = 40;
+    result->severity = KE_SEV_INFO;
+    result->detected = true;
 
     /*
     *   Assumptions
@@ -43,10 +43,10 @@ struct ke_detection_result reverse_shell_time_correlation(__u64 execve_ts, __u64
     // check is it under 60 seconds
     if(delta < 60ULL * 1000000000ULL){
         // This helps to decide policies
-        result.detection_id = KE_DET_REVERSE_SHEL;
-        result.score += 20;
-        result.severity = KE_SEV_WARNING;
-        result.detected = true;
+        result->detection_id = KE_DET_REVERSE_SHEL;
+        result->score += 20;
+        result->severity = KE_SEV_WARNING;
+        result->detected = true;
     }
 
     return result;
