@@ -3,6 +3,7 @@
 #include <bpf/libbpf.h>
 #include <signal.h>
 #include <unistd.h>
+#include "detections/exec_rules.h"
 
 static volatile sig_atomic_t stop;
 
@@ -39,6 +40,11 @@ int main(int argc, char *argv[]){
     if(!exec) return 1;
 
     printf("All probes loaded successfully!\n");
+
+    // load exec rules once
+    exec_rules_init();
+    exec_rules_load_from_file("detections/rules.conf");
+    printf("Rules loaded successfully!\n");
 
     // Creates a new instance of a user ring buffer.
     rb = ring_buffer__new(
