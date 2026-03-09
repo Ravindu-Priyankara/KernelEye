@@ -22,7 +22,11 @@ int handle_event(void *ctx, void *data, size_t size){
             );
 
             if(!result){
-                // allocate temp result for prevent crash
+                /*
+                *   Assumption:
+                *       1. if its return null pointer it will crash
+                *       2. For prevent crash allocate temp result to pointer
+                */
                 static struct ke_detection_result temp_result = {0};
                 result = &temp_result;
             }

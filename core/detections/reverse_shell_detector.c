@@ -27,6 +27,8 @@ struct ke_detection_result *reverse_shell_time_correlation(__u64 execve_ts, __u6
     *       1. connect syscall
     *       2. execve syscall
     *   Therefore, we should add a 40 score for this.
+    *   severity:
+    *       1. for syscall pattern trigger = info
     */
     result->detection_id = KE_DET_CONNECT_WITHEXECVE;
     result->score = 40;
@@ -43,6 +45,7 @@ struct ke_detection_result *reverse_shell_time_correlation(__u64 execve_ts, __u6
     // check is it under 60 seconds
     if(delta < 60ULL * 1000000000ULL){
         // This helps to decide policies
+        // severity = if it trigger quick enough = warning
         result->detection_id = KE_DET_REVERSE_SHEL;
         result->score += 20;
         result->severity = KE_SEV_WARNING;
@@ -69,9 +72,11 @@ struct ke_detection_result *reverse_shell_filename_correlation(const char *filen
     exec_rule *rules = exec_rules_find(file);
     if(rules){
         // update the results
+        // if it has suspicious filename = warning
+        // if it quick trigger + suspicious filnemae = critical
         result->detection_id = KE_DET_REVERSE_SHEL;
+        if(result->score >= 60) result->severity = KE_SEV_CRITICAL : result->severity = KE_SEV_WARNING;
         result->score += rules->severity;
-        result->severity = KE_SEV_WARNING;
         result->detected = true;
     }
 
