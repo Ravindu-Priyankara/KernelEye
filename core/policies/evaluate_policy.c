@@ -3,7 +3,7 @@
 #include "../detections/detection_results.h"
 
 /*
-*   Reverse Shell Policy Evaluation
+*   Policy Evaluation
 *
 *   This function determines the final action based on the
 *   detection result produced by the detection engine.
@@ -30,7 +30,7 @@
 *   - Either metric can trigger enforcement
 */
 
-enum ke_policy_result check_reverse_shell(struct ke_detection_result *result){
+enum ke_policy_result evaluate_policy(struct ke_detection_result *result){
 
     // for block
     if(result->severity == KE_SEV_CRITICAL || result->score >= BLOCK_SCORE)
