@@ -12,7 +12,9 @@ int run_detections (
 {
     // iterate for pass data to all detectors
     for(int i = 0; i < detector_count; i++){
-        if(detector[i].detect(event, result)) return 1;     // 0 = success , otherwise return 1
+        // 1 = detection executed
+        // 0 = not my event type
+        if(detector[i].detect(event, result)) return 1;     
     }
 
     return 0;

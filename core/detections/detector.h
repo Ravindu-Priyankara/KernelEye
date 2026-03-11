@@ -13,6 +13,6 @@ typedef struct ke_detector{
         // arg1 = event header 
         // arg2 = detection result
         struct ke_event_header *event,
-        struct detection_results * result
+        struct detection_results *result
     );
 } ke_detector;
