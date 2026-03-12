@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "base_response.h"
+#include "response_header.h"
 
 // Forward declaration for pre-event printers
 int print_reverse_shell(struct ke_event_header *event);

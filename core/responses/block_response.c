@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include "base_response.h"
+#include "response_header.h"
 
 // This is the function we used for terminate process
 int block_execute(

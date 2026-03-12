@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "base_response.h"
+#include "response_header.h"
 
 // List of all response modules
 ke_response *responses[] = {
