@@ -7,7 +7,7 @@ int block_execute(
     struct ke_event_header *event
 )
 {
-    kill(event->hdr.pid, SIGTERM);
+    kill(event->pid, SIGTERM);
     printf("[KernelEye BLOCK] Malicious process killed!\n");
     //TODO: show more details {pid , ..}
     return 0;
