@@ -11,12 +11,15 @@ int handle_event(void *ctx, void *data, size_t size){
     // helps to categorize the data by header type
     struct ke_event_header *hdr = data;
 
+    // get all data from reverse shell event
+    struct ke_reverse_shell_event *event = data;
+
     // zero-initialized struct to hold event results
     struct ke_detection_result result = {0};
 
     // 1 = detected
     // 0 = not detected
-    if(run_detections(hdr, &result)){
+    if(run_detections(event, &result)){
         // get the policies
         enum ke_policy_result action = evaluate_policy(&result);
 

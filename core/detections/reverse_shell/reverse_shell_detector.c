@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "../../common/common_validation.h"
 #include "../../common/common_status.h"
 #include "../../common/common_structs.h"
 #include "../rules/exec_rules.h"
@@ -40,7 +39,7 @@ int reverse_shell_time_correlation(
     *   severity:
     *       1. for syscall pattern trigger = info
     */
-    result->detection_id = KE_DET_CONNECT_WITHEXECVE; // TODO: In the future, we should change the detection id overwrite design bug.
+    result->detection_id = KE_DET_CONNECT_WITH_EXECVE; // TODO: In the future, we should change the detection id overwrite design bug.
     result->score += 40;
     result->severity = KE_SEV_INFO;
     result->detected = true;
@@ -56,7 +55,7 @@ int reverse_shell_time_correlation(
     if(delta < 60ULL * 1000000000ULL){
         // This helps to decide policies
         // severity = if it trigger quick enough = warning
-        result->detection_id = KE_DET_REVERSE_SHEL; // TODO: In the future, we should change the detection id overwrite design bug.
+        result->detection_id = KE_DET_REVERSE_SHELL; // TODO: In the future, we should change the detection id overwrite design bug.
         result->score += 20;
         result->severity = KE_SEV_WARNING;
         result->detected = true;
@@ -105,7 +104,7 @@ int reverse_shell_filename_correlation(
         // if it quick trigger + suspicious filnemae = critical
         result->detection_id = KE_DET_REVERSE_SHEL;
         result->severity = (result->score >= 60) ? KE_SEV_CRITICAL : KE_SEV_WARNING;
-        result->score += rules->severity;
+        result->score += rule->severity;
         result->detected = true;
     }
 
@@ -122,14 +121,14 @@ int reverse_shell_filename_correlation(
 *       1 = not my event type
 */
 int detect_reverse_shell(
-    struct ke_event_header *event,
+    struct ke_reverse_shell_event *event,
     struct ke_detection_result *result
 )
 {
     // prevent null value passing
     if(!event || !result) return 0;
 
-    if(event->type != KE_EVENT_REVERSE_SHELL) return 0; 
+    if(event->hdr.type != KE_EVENT_REVERSE_SHELL) return 0; 
 
     // for err handling
     int err;
