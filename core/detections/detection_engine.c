@@ -14,7 +14,7 @@ int run_detections (
     for(int i = 0; i < detector_count; i++){
         // 1 = detection executed
         // 0 = not my event type
-        if(detector[i].detect(event, result)) return 1;     
+        if(detectors[i].detect(event, result)) return 1;     
     }
 
     return 0;
