@@ -1,9 +1,6 @@
 #include <stdio.h>
 
 #include "base_response.h"
-#include "alert_response.c"
-#include "block_response.c"
-#include "allow_response.c"
 
 // List of all response modules
 ke_response *responses[] = {
