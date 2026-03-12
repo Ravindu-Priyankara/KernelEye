@@ -15,7 +15,10 @@ int handle_event(void *ctx, void *data, size_t size){
     // 1 = detected
     // 0 = not detected
     if(run_detections(hdr, &result)){
+        // get the policies
         enum ke_policy_result action = evaluate_policy(&result);
+
+        
     }
     
 }
