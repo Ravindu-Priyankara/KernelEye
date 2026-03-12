@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "base_response.h"
-#include "../common/common_sockets.h"
 
 // Forward declaration for pre-event printers
 int print_reverse_shell(struct ke_event_header *event);
@@ -14,11 +13,11 @@ struct {
     int type;
     event_printer printer;
 } alert_printers [] = {
-    {KE_REVERSE_SHELL,  print_reverse_shell}    // currently we have reverse shell only
+    {KE_EVENT_REVERSE_SHELL,  print_reverse_shell}    // currently we have reverse shell only
 };
 
 // This is the function that we pass the alert events. And it chooses which function to pass data
-int alert_execute(struct ke_vent_header *event){
+int alert_execute(struct ke_event_header *event){
     // total table size / 1st function size (each function allocate same size)
     for(int i = 0; i < sizeof(alert_printers)/sizeof(alert_printers[0]); i++){
         if(alert_printers[i].type == event->type){
