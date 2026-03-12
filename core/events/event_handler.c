@@ -1,8 +1,10 @@
 #include <stdio.h>
+
 #include "../common/common_structs.h"
 #include "../detections/detection_results.h"
 #include "../detections/detection_headers.h"
 #include "../policies/policy_header.h"
+#include "../responses/response_engine.h"
 
 
 int handle_event(void *ctx, void *data, size_t size){
@@ -18,7 +20,9 @@ int handle_event(void *ctx, void *data, size_t size){
         // get the policies
         enum ke_policy_result action = evaluate_policy(&result);
 
-        
+        ke_execute_response(action, hdr);
     }
+
+    return 0;
     
 }
