@@ -4,21 +4,29 @@
 #include <signal.h>
 #include <unistd.h>
 #include "detections/rules/exec_rules.h"
+#include "events/event_handler.h"
 
 static volatile sig_atomic_t stop;
 
 static void handle_signal(int sig)
 {
+    (void)sig;  // for fix unused warning
     stop = 1;
 }
 
 int main(int argc, char *argv[]){
     // avoid taking arguments
+    (void)argv; // for fix unused warning
     if(argc != 1) return 1;
 
     // signal handlers
-    signal(SIGINT, handle_signal);
-    signal(SIGTERM, handle_signal);
+    struct sigaction sa = {0};
+    sa.sa_handler = handle_signal;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
 
     //eBPF skelton for connect tracker
     struct connect_tracker_bpf *conn;
