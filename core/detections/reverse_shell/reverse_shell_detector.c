@@ -102,7 +102,7 @@ int reverse_shell_filename_correlation(
         // update the results
         // if it has suspicious filename = warning
         // if it quick trigger + suspicious filnemae = critical
-        result->detection_id = KE_DET_REVERSE_SHEL;
+        result->detection_id = KE_DET_REVERSE_SHELL;
         result->severity = (result->score >= 60) ? KE_SEV_CRITICAL : KE_SEV_WARNING;
         result->score += rule->severity;
         result->detected = true;
