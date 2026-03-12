@@ -19,6 +19,7 @@
  */
 #ifndef __BPF__
 #include <linux/types.h>
+#include <stddef.h>
 #endif
 
 // used for support ipv4 + ipv6
