@@ -4,7 +4,7 @@
 // located at: reverse_shell/reverse_shell_detector.c
 extern int detect_reverse_shell(
     struct ke_event_header *event,  // for get header type
-    struct detection_results *result    // store result of detection
+    struct ke_detection_result *result    // store result of detection
 );
 
 /*
