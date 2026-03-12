@@ -6,6 +6,9 @@
 #include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
 
+// ruleset macro
+#define KE_RULES_PATH "../detections/config/rules.conf"
+
 static volatile sig_atomic_t stop;
 
 static void handle_signal(int sig)
@@ -51,7 +54,7 @@ int main(int argc, char *argv[]){
 
     // load exec rules once
     exec_rules_init();
-    exec_rules_load_from_file("detections/config/rules.conf");
+    exec_rules_load_from_file(KE_RULES_PATH);
     printf("Rules loaded successfully!\n");
 
     // Creates a new instance of a user ring buffer.
@@ -68,6 +71,10 @@ int main(int argc, char *argv[]){
 
     while(!stop){
         int err = ring_buffer__poll(rb, 100);   // timeout = 100ms
+
+        if (err == -EINTR) {
+            return 0;   // graceful shutdown
+        }
 
         if (err < 0) {
             fprintf(stderr, "Error polling ring buffer\n");
