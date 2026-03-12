@@ -7,7 +7,7 @@ extern int detector_count;
 
 int run_detections (
     struct ke_event_header *event,
-    struct ke_detection_result *result
+    struct ke_detection_results *result
 )
 {
     // iterate for pass data to all detectors
