@@ -39,13 +39,13 @@ int print_reverse_shell(
 {
     printf("[KernelEye ALERT]. Reverse shell type event detected!\n");
     printf("================ Process Info =======================");
-    printf("Process id: %d\n", event->hdr.pid);
-    printf("Parent Process id: %d\n", event->hdr.ppid);
-    printf("Process filename: %s\n", event->data.filename);
-    printf("================ Timestamp Info =====================");
-    printf("Process Triggered TS: %llu\n", event->hdr.ts);
-    printf("Execve TS: %llu\n", event->data.execve_ts);
-    printf("Network TS: %llu\n", event->data.net_ts);
+    printf("Process id: %d\n", event->pid);
+    printf("Parent Process id: %d\n", event->ppid);
+    //printf("Process filename: %s\n", event->data.filename);
+    //printf("================ Timestamp Info =====================");
+    //printf("Process Triggered TS: %llu\n", event->hdr.ts);
+    //printf("Execve TS: %llu\n", event->data.execve_ts);
+    //printf("Network TS: %llu\n", event->data.net_ts);
     // TODO: Add network info also
     return 0;
 }
