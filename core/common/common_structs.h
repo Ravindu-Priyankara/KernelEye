@@ -14,6 +14,13 @@
 
 #pragma once
 
+/* Only include linux/types.h for userland,
+ * BPF programs already get types from vmlinux.h
+ */
+#ifndef __BPF__
+#include <linux/types.h>
+#endif
+
 // used for support ipv4 + ipv6
 // total bytes 24 bytes
 struct ke_sockaddr {
