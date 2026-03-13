@@ -180,5 +180,10 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
       if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
   }
 
+  // for debugging
+  #ifdef DEBUG_MODE
+      debug_counter(1); // increment debug counter
+  #endif
+
   return ERR_SUCCESS;
 }

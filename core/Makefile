@@ -13,8 +13,14 @@ BUILD_DIR = ./build
 # BPF CONFIG
 # ===============================
 
+DEBUG ?= 0   # 0 = no debug, 1 = debug
+
 BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ \
 	-I./common -I./helpers -I./maps -I/usr/include -I/usr/include/bpf
+
+ifeq ($(DEBUG),1)
+BPF_FLAGS += -DDEBUG_MODE
+endif
 
 PROBES_DIR = ./probes
 COMMON_DIR = ./common
