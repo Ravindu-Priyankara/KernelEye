@@ -31,26 +31,18 @@ int main(int argc, char *argv[]){
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
 
-    //eBPF skelton for connect tracker
-    struct connect_tracker_bpf *conn;
-
-    //eBPF skelton for execve tracker
-    struct execve_tracker_bpf *exec;
+    //eBPF skelton for kernel-eye
+    struct kerneleye_bpf *kern;
 
     // pointer to the main input data stream.
     struct ring_buffer *rb = NULL;
 
-    // power-up the connect tracker {open, load, attach}
+    // power-up the KernelEye {open, load, attach}
     // return : pointer
-    conn = load_connect_probe();
-    if(!conn) return 1;
+    kern = load_kerneleye();
+    if(!kern) return 1;
 
-    // power-up the execve tracker {open, load, attach}
-    // return: pointer
-    exec = load_execve_probe();
-    if(!exec) return 1;
-
-    printf("All probes loaded successfully!\n");
+    printf("KernelEye loaded successfully!\n");
 
     // load exec rules once
     exec_rules_init();
@@ -59,7 +51,7 @@ int main(int argc, char *argv[]){
 
     // Creates a new instance of a user ring buffer.
     rb = ring_buffer__new(
-        bpf_map__fd(conn->maps.alert_map),
+        bpf_map__fd(kern->maps.alert_map),
         handle_event,
         NULL,
         NULL
@@ -83,8 +75,7 @@ int main(int argc, char *argv[]){
     }
 
     // destroy the probes
-    connect_tracker_bpf__destroy(conn);
-    execve_tracker_bpf__destroy(exec);
+    kerneleye_bpf__destroy(conn);
 
     // clear ring buffer
     ring_buffer__free(rb);

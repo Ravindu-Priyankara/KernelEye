@@ -19,11 +19,17 @@ BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ \
 PROBES_DIR = ./probes
 COMMON_DIR = ./common
 
-BPF_SRCS := $(wildcard $(PROBES_DIR)/*.bpf.c)
+# old 
+# BPF_SRCS := $(wildcard $(PROBES_DIR)/*.bpf.c) 
+#BPF_OBJS := $(patsubst $(PROBES_DIR)/%.bpf.c,$(BUILD_DIR)/%.bpf.o,$(BPF_SRCS))
+#BPF_SKELS := $(patsubst $(PROBES_DIR)/%.bpf.c,$(BUILD_DIR)/%.skel.h,$(BPF_SRCS))
 
-BPF_OBJS := $(patsubst $(PROBES_DIR)/%.bpf.c,$(BUILD_DIR)/%.bpf.o,$(BPF_SRCS))
+BPF_DIR = ./bpf
+BPF_SRC = $(BPF_DIR)/kerneleye.bpf.c
 
-BPF_SKELS := $(patsubst $(PROBES_DIR)/%.bpf.c,$(BUILD_DIR)/%.skel.h,$(BPF_SRCS))
+BPF_OBJ = $(BUILD_DIR)/kerneleye.bpf.o
+BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
+
 
 # ===============================
 # USERSPACE CONFIG
@@ -35,8 +41,7 @@ CFLAGS = -Wall -Wextra -g \
 USER_SRCS := \
 	main.c \
 	events/event_handler.c \
-	loader/load_connect.c \
-	loader/load_execve.c \
+	loader/load_kerneleye.c \
 	detections/detection_engine.c \
 	detections/detection_registry.c \
 	detections/reverse_shell/reverse_shell_detector.c \
@@ -54,7 +59,10 @@ USER_OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(USER_SRCS))
 # DEFAULT TARGET
 # ===============================
 
-all: $(COMMON_DIR)/vmlinux.h $(BPF_SKELS) kerneleye
+#old
+#all: $(COMMON_DIR)/vmlinux.h $(BPF_SKELS) kerneleye
+
+all: $(COMMON_DIR)/vmlinux.h $(BPF_SKEL) kerneleye
 
 # ===============================
 # vmlinux.h generation
@@ -68,7 +76,12 @@ $(COMMON_DIR)/vmlinux.h:
 # BPF compile
 # ===============================
 
-$(BUILD_DIR)/%.bpf.o: $(PROBES_DIR)/%.bpf.c $(COMMON_DIR)/vmlinux.h
+# old
+#$(BUILD_DIR)/%.bpf.o: $(PROBES_DIR)/%.bpf.c $(COMMON_DIR)/vmlinux.h
+#	@mkdir -p $(BUILD_DIR)
+#	$(CLANG) $(BPF_FLAGS) -c $< -o $@
+
+$(BPF_OBJ): $(BPF_SRC) $(COMMON_DIR)/vmlinux.h
 	@mkdir -p $(BUILD_DIR)
 	$(CLANG) $(BPF_FLAGS) -c $< -o $@
 
@@ -76,7 +89,12 @@ $(BUILD_DIR)/%.bpf.o: $(PROBES_DIR)/%.bpf.c $(COMMON_DIR)/vmlinux.h
 # Skeleton generation
 # ===============================
 
-$(BUILD_DIR)/%.skel.h: $(BUILD_DIR)/%.bpf.o
+# old
+#$(BUILD_DIR)/%.skel.h: $(BUILD_DIR)/%.bpf.o
+#	@echo "Generating skeleton $@"
+#	$(BPFTOOL) gen skeleton $< > $@
+
+$(BPF_SKEL): $(BPF_OBJ)
 	@echo "Generating skeleton $@"
 	$(BPFTOOL) gen skeleton $< > $@
 

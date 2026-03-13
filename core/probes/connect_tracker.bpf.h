@@ -40,16 +40,6 @@
  * ===========================================================
 */
 
-#include "../common/common_headers.h"
-#include "../common/common_structs.h"
-#include "../maps/maps.h"
-#include "../helpers/common_helpers.h"
-#include "../helpers/connect_helpers.h"
-#include "../common/common_validation.h"
-#include "../common/common_status.h"
-#include "../common/common_debugging.h"
-#include "../common/common_syscalls.h"
-#include "../helpers/event_helpers.h"
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
@@ -192,5 +182,3 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
 
   return ERR_SUCCESS;
 }
-
-char LICENSE[] SEC("license") = "GPL"; 
