@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
     }
 
     // destroy the probes
-    kerneleye_bpf__destroy(conn);
+    kerneleye_bpf__destroy(kern);
 
     // clear ring buffer
     ring_buffer__free(rb);
