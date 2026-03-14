@@ -6,6 +6,7 @@
 #include "../policies/policy_header.h"
 #include "../responses/response_engine.h"
 #include "../ui/display/display.h"
+#include "../ui/banner/banner.h"
 
 
 int handle_event(void *ctx, void *data, size_t size){
@@ -18,12 +19,6 @@ int handle_event(void *ctx, void *data, size_t size){
     // zero-initialized struct to hold event results
     struct ke_detection_result result = {0};
 
-    // initialize stats
-    struct stats ke_stats = {0};
-
-    // A new event happened
-    ke_stats.events++;
-
     // 1 = detected
     // 0 = not detected
     if(run_detections(event, &result)){
@@ -32,30 +27,26 @@ int handle_event(void *ctx, void *data, size_t size){
 
         ke_execute_response(action, hdr);
 
-        // If it’s a reverse shell
+        ke_stats.events++;
         if(result.detection_id == KE_DET_REVERSE_SHELL)
             ke_stats.reverse_shells++;
-
-        // If severity is warning, consider it an alert
         if(result.severity == KE_SEV_WARNING)
             ke_stats.alerts++;
-
-        
         if(result.severity == KE_SEV_CRITICAL)
             ke_stats.blocks++;
 
-        // update the event table
-        ke_display_event(
-            event->hdr.pid,
-            event->hdr.type,
-            result.severity,
-            result.detection_id,
-            result.score
-        );
+        // add to buffer
+        add_event_to_buffer(event, &result);
+
+        // refresh screen
+        printf("\033[2J\033[H");  // clear screen + move cursor top
+        ke_print_banner();
+        ke_description();
+        ke_display_init();
+        ke_display_all_events();
+        ke_print_stats(&ke_stats);
 
     }
-
-    ke_print_stats(&ke_stats);
 
     return 0;
     
