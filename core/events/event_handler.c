@@ -33,15 +33,15 @@ int handle_event(void *ctx, void *data, size_t size){
         ke_execute_response(action, hdr);
 
         // If it’s a reverse shell
-        if(result->detection_id == KE_DET_REVERSE_SHELL)
+        if(result.detection_id == KE_DET_REVERSE_SHELL)
             ke_stats.reverse_shells++;
 
-        // If severity is warning or higher, consider it an alert
-        if(result->severity >= KE_SEV_WARNING)
+        // If severity is warning, consider it an alert
+        if(result.severity == KE_SEV_WARNING)
             ke_stats.alerts++;
 
-        // If you implement auto-blocking, increase blocks
-        if(policy_blocked_event(result))
+        
+        if(result.severity == KE_SEV_CRITICAL)
             ke_stats.blocks++;
 
         // update the event table
