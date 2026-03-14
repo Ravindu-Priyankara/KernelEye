@@ -44,13 +44,13 @@ const char *ke_severity_str(int severity)
     switch(severity)
     {
         case KE_SEV_INFO:
-            return "INFO";
+            return COLOR_BRIGHT_WHITE "INFO" COLOR_RESET;
 
         case KE_SEV_WARNING:
-            return "WARNING";
+            return COLOR_BRIGHT_YELLOW "WARNING" COLOR_RESET;
 
         case KE_SEV_CRITICAL:
-            return "CRITICAL";
+            return COLOR_BRIGHT_RED "CRITICAL" COLOR_RESET;
 
         default:
             return "UNKNOWN";
