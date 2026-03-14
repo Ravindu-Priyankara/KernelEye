@@ -61,5 +61,9 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     // submit the values
     bpf_ringbuf_submit(r_event, 0);
 
+    // map cleanup
+    if(delete_map_elements(&connect_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
+    if(delete_map_elements(&execve_hash_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
+
     return ERR_SUCCESS;
 }

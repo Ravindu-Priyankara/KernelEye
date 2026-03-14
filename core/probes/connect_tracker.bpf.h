@@ -117,62 +117,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   event.net_ts = net_ts;
 
   //update the hash map
-  ret = update_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
-  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
-
-  // for debugging
-  #ifdef DEBUG_MODE
-      debug_counter(1); // increment debug counter
-  #endif
-
-  return ERR_SUCCESS;
-
-}
-
-/*
-* This tracepoint is used to filter out successful connections
-* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_exit_connect/format
-* Stack Allocation: 96 bytes
-*/
-SEC("tracepoint/syscalls/sys_exit_connect")
-int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
-  /*
-  * For hold return value
-  * Stack Allocation: 4 bytes
-  */
-  long ret;
-
-  /*
-  * for hold pid value
-  * Stack Allocation: 4 bytes
-  */
-  __u32 pid;
-
-  /*
-    * This struct used for hold our IPV4 or IPV6 data
-    * Stack Allocation: 40 bytes
-  */
-  struct connect_event event = {};
-
-  //get the pid for filter data
-  pid = get_tgid();
-
-  // get the retun value
-  ret = ctx->ret;
-
-  // prevent null values
-  if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-  if(validate_not_null_long(ret) != ERR_SUCCESS) return ERR_SUCCESS;
-
-  //sanitize the pid
-  if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-
-  // update the correct map
-  ret = identify_the_return_request_type(ret, CONNECT, pid);
-  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
-
-  //remove temp map data
-  ret = delete_map_elements(&tmp_connect_map, &pid);
+  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY); // save connection details on connect map
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // check is that suspiecious
@@ -186,4 +131,5 @@ int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
   #endif
 
   return ERR_SUCCESS;
+
 }
