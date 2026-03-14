@@ -59,50 +59,12 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     tmp_event->execve_ts = execve_ts;
 
     // Copy scratchpad → HASH map (persistent storage)
-    if(update_map_element(&tmp_execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
-
-    return 0;
-}
-
-SEC("tracepoint/syscalls/sys_exit_execve")
-int execve_exit_handler(struct trace_event_raw_sys_exit *ctx){
-    /*
-    *   For hold return value
-    *   Stack Allocation: 4 bytes
-    */
-    long ret;
-
-    /*
-    *   for hold pid value
-    *   Stack Allocation: 4 bytes
-    */
-    __u32 pid;
-
-    //get the return value
-    ret = ctx->ret;
-
-    // get the pid
-    pid = get_tgid();
-
-    //prevent null values 
-    if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-    if(validate_not_null_long(ret) != ERR_SUCCESS) return ERR_SUCCESS;
-
-    //sanitize the pid
-    if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-
-    // update the correct map
-    ret = identify_the_return_request_type(ret, EXECVE, pid);
-    if(ret != ERR_SUCCESS) return ERR_SUCCESS;
-
-    // remove the temp map data
-    ret = delete_map_elements(&tmp_execve_hash_map, &pid);
-    if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+    if(update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
     // check is that suspiecious
     if(check_map_data_availability(&connect_map ,&pid)){
         if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
     }
 
-    return ERR_SUCCESS;
+    return 0;
 }
