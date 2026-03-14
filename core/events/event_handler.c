@@ -18,6 +18,12 @@ int handle_event(void *ctx, void *data, size_t size){
     // zero-initialized struct to hold event results
     struct ke_detection_result result = {0};
 
+    // initialize stats
+    struct stats ke_stats = {0};
+
+    // A new event happened
+    ke_stats.events++;
+
     // 1 = detected
     // 0 = not detected
     if(run_detections(event, &result)){
@@ -26,6 +32,19 @@ int handle_event(void *ctx, void *data, size_t size){
 
         ke_execute_response(action, hdr);
 
+        // If it’s a reverse shell
+        if(result->detection_id == KE_DET_REVERSE_SHELL)
+            ke_stats.reverse_shells++;
+
+        // If severity is warning or higher, consider it an alert
+        if(result->severity >= KE_SEV_WARNING)
+            ke_stats.alerts++;
+
+        // If you implement auto-blocking, increase blocks
+        if(policy_blocked_event(result))
+            ke_stats.blocks++;
+
+        // update the event table
         ke_display_event(
             event->hdr.pid,
             event->hdr.type,
@@ -33,7 +52,10 @@ int handle_event(void *ctx, void *data, size_t size){
             result.detection_id,
             result.score
         );
+
     }
+
+    ke_print_stats(&ke_stats);
 
     return 0;
     

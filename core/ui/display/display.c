@@ -3,6 +3,11 @@
 #include "../../detections/detection_results.h"
 #include "../../common/common_structs.h"
 
+#define COLOR_RESET   "\033[0m"
+#define COLOR_GREEN   "\033[32m"
+#define COLOR_YELLOW  "\033[33m"
+#define COLOR_RED     "\033[31m"
+
 void ke_display_init(void)
 {
     printf("=====================================================================\n");
@@ -99,12 +104,10 @@ void ke_print_stats(struct stats *s)
     if(!s) return;
 
     printf("\n---------------------------------------------------------------------\n");
-
-    printf("Events:%d | ReverseShells:%d | Alerts:%d | Blocks:%d\n",
-           s->events,
-           s->reverse_shells,
-           s->alerts,
-           s->blocks);
-
+    printf("Events: %s%-5d%s | ReverseShells: %s%-5d%s | Alerts: %s%-5d%s | Blocks: %s%-5d%s\n",
+           COLOR_GREEN, s->events, COLOR_RESET,
+           COLOR_YELLOW, s->reverse_shells, COLOR_RESET,
+           COLOR_RED, s->alerts, COLOR_RESET,
+           COLOR_RED, s->blocks, COLOR_RESET);
     fflush(stdout);
 }
