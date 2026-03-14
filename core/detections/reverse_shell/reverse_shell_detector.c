@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 
 #include "../../common/common_status.h"
 #include "../../common/common_structs.h"
@@ -115,36 +113,6 @@ int reverse_shell_filename_correlation(
     return 0;
 }
 
-/*
-* Resolve the actual executable path via /proc/<pid>/exe
-* Arguments:
-*   - pid
-*   - buffer = for save filename
-*   - buffer size
-* Returns:
-*   0 on success, 1 on failure
-*/
-int resolve_real_path_to_event(
-    pid_t pid,
-    char dest[256]
-) 
-{
-    char path[64]; // /proc/<pid>/exe
-    char tmp[256];
-    ssize_t len;
-
-    if(!dest) return 1;
-
-    snprintf(path, sizeof(path), "/proc/%d/exe", pid);
-    len = readlink(path, tmp, sizeof(tmp)-1);
-    if(len <= 0) return 1;
-
-    tmp[len] = '\0';
-    
-    // copy to event->data.filename safely
-    memcpy(dest, tmp, len + 1); // include null terminator
-    return 0;
-}
 
 /*
 *   This is the reverse shell detector calling function and it link time correlation + filename based correlation.
@@ -189,10 +157,6 @@ int detect_reverse_shell(
     *       2. Fix common bypasses { capitalized or white space based techniques}
     *   
     */
-    char real_filename[256];
-    if(resolve_real_path_to_event(event->hdr.pid, real_filename) == 0) {
-        memcpy(event->data.filename, real_filename, 256);
-    }
 
     err = reverse_shell_filename_correlation(
         event->data.filename, 
