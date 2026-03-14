@@ -42,7 +42,7 @@ BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
 # ===============================
 
 CFLAGS = -Wall -Wextra -g \
-	-I./common -I./helpers -I./events -I./detections -I./policies -I./responses -I./loader -I./maps -I./build
+	-I./common -I./helpers -I./events -I./detections -I./policies -I./responses -I./loader -I./maps -I./banner -I./build
 
 USER_SRCS := \
 	main.c \
@@ -57,7 +57,8 @@ USER_SRCS := \
 	responses/response_registry.c \
 	responses/alert_response.c \
 	responses/block_response.c \
-	responses/allow_response.c
+	responses/allow_response.c \
+	banner/banner.c
 
 USER_OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(USER_SRCS))
 

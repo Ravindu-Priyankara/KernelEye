@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
+#include "banner/banner.h"
 
 // ruleset macro
 #define KE_RULES_PATH "../detections/config/rules.conf"
@@ -30,6 +31,9 @@ int main(int argc, char *argv[]){
 
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
+
+    // banner
+    ke_print_banner(void);
 
     //eBPF skelton for kernel-eye
     struct kerneleye_bpf *kern;
