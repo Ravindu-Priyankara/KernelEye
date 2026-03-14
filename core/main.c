@@ -33,7 +33,9 @@ int main(int argc, char *argv[]){
     sigaction(SIGTERM, &sa, NULL);
 
     // banner
-    ke_print_banner(void);
+    ke_print_banner();
+    ke_description();
+    ke_display_init();
 
     //eBPF skelton for kernel-eye
     struct kerneleye_bpf *kern;
