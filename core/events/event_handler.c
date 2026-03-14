@@ -48,9 +48,9 @@ int handle_event(void *ctx, void *data, size_t size){
     printf("\033[2J\033[H");  // clear screen + move cursor top
     ke_print_banner();
     ke_description();
+    ke_display_init();
     ke_display_all_events();
     ke_print_stats(&ke_stats);
-    ke_display_init();
 
     return 0;
     
