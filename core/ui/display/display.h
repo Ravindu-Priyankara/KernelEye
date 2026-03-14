@@ -13,7 +13,7 @@ void ke_display_event(
     int pid,
     int type,
     int severity,
-    const char *detection,
+    int detection_id,
     int score
 );
 

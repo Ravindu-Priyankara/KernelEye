@@ -30,8 +30,8 @@ int handle_event(void *ctx, void *data, size_t size){
             event->hdr.pid,
             event->hdr.type,
             result.severity,
-            "CONNECT+EXECVE",
-            result.score,
+            result.detection_id,
+            result.score
         );
     }
 

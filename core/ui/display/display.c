@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "display.h"
-#include "../../../detections/detection_results.h"
-#include "../../../common/common_structs.h"
+#include "../../detections/detection_results.h"
+#include "../../common/common_structs.h"
 
 void ke_display_init(void)
 {
