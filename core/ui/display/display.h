@@ -11,8 +11,8 @@ void ke_display_init(void);
 
 void ke_display_event(
     int pid,
-    const char *type,
-    const char *severity,
+    int type,
+    int severity,
     const char *detection,
     int score
 );

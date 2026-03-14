@@ -36,8 +36,6 @@ int main(int argc, char *argv[]){
 
     // banner
     ke_print_banner();
-    ke_description();
-    ke_display_init();
 
     //eBPF skelton for kernel-eye
     struct kerneleye_bpf *kern;
@@ -60,6 +58,7 @@ int main(int argc, char *argv[]){
 
     system("clear");   // clean screen for monitoring UI
     ke_print_banner();
+    ke_description();
     ke_display_init();
 
     // Creates a new instance of a user ring buffer.

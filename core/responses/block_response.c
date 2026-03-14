@@ -9,7 +9,7 @@ int block_execute(
 )
 {
     kill(event->pid, SIGTERM);
-    printf("[KernelEye BLOCK] Malicious process killed!\n");
+    //printf("[KernelEye BLOCK] Malicious process killed!\n");
     //TODO: show more details {pid , ..}
     return 0;
 }
