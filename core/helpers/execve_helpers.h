@@ -17,7 +17,7 @@ static __always_inline int copy_the_execve_event_data(__u32 pid){
     int ret;
 
     // check availability
-    event =check_map_data_availability(&tmp_execve_hash_map, &pid);
+    event =check_map_data_availability(&execve_hash_map, &pid);
     if(!event) return ERR_FAILURE;
 
     // update the map
