@@ -145,7 +145,7 @@ static __always_inline int copy_the_connect_event_data(__u32 pid){
     // 4 bytes of stack allocation
     int ret;
     // get the data
-    event = check_map_data_availability(&tmp_connect_map ,&pid);
+    event = check_map_data_availability(&connect_map ,&pid);
     if(!event) return ERR_FAILURE;
 
     // update the map
