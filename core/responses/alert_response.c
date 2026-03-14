@@ -27,7 +27,7 @@ int alert_execute(struct ke_event_header *event){
     }
 
     // This helps to prevent a crash if an unknown type is in the table.
-    fprintf(stderr, "[KernelEye ALERT]. Unknown event type %d\n", event->type);
+    //fprintf(stderr, "[KernelEye ALERT]. Unknown event type %d\n", event->type);
     return 0;
 }
 
@@ -37,10 +37,10 @@ int print_reverse_shell(
     struct ke_event_header *event
 )
 {
-    printf("[KernelEye ALERT]. Reverse shell type event detected!\n");
-    printf("================ Process Info =======================");
-    printf("Process id: %d\n", event->pid);
-    printf("Parent Process id: %d\n", event->ppid);
+    //printf("[KernelEye ALERT]. Reverse shell type event detected!\n");
+    //printf("================ Process Info =======================");
+    //printf("Process id: %d\n", event->pid);
+    //printf("Parent Process id: %d\n", event->ppid);
     //printf("Process filename: %s\n", event->data.filename);
     //printf("================ Timestamp Info =====================");
     //printf("Process Triggered TS: %llu\n", event->hdr.ts);
