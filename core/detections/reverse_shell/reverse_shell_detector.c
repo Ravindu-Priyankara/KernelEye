@@ -1,8 +1,13 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
+
 #include "../../common/common_status.h"
 #include "../../common/common_structs.h"
 #include "../rules/exec_rules.h"
 #include "../detector.h"
+
+#define PATH_MAX 256
 
 /*
 *   This function is used to check `connect` + `execve` trigger duration is under 60 seconds or not. And it helps a lot to prevent false positives.
@@ -112,6 +117,30 @@ int reverse_shell_filename_correlation(
 }
 
 /*
+* Resolve the actual executable path via /proc/<pid>/exe
+* Arguments:
+*   - pid
+*   - buffer = for save filename
+*   - buffer size
+* Returns:
+*   0 on success, 1 on failure
+*/
+int get_real_executable_path(pid_t pid, char *buf, size_t buf_len)
+{
+    char path[64];  // for store /proc/pid/exe data
+    ssize_t len;
+
+    if(!buf || buf_len == 0) return 1;
+
+    snprintf(path, sizeof(path), "/proc/%d/exe", pid); 
+    len = readlink(path, buf, buf_len - 1);
+    if(len <= 0) return 1;
+
+    buf[len] = '\0'; // null terminator
+    return 0;
+}
+
+/*
 *   This is the reverse shell detector calling function and it link time correlation + filename based correlation.
 *   Arguments:
 *       event header struct = for identify event category
@@ -154,6 +183,12 @@ int detect_reverse_shell(
     *       2. Fix common bypasses { capitalized or white space based techniques}
     *   
     */
+    char real_path[PATH_MAX];
+    if(get_real_executable_path(event->hdr.pid, real_path, sizeof(real_path)) == 0) {
+        // overwrite the filename from kernel with the actual real path
+        event->data.filename = real_path;
+    }
+
     err = reverse_shell_filename_correlation(
         event->data.filename, 
         result
