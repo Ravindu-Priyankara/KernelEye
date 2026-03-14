@@ -6,18 +6,17 @@
 
 void ke_display_init(void)
 {
-    printf("=====================================================================\n");
-    printf(" KernelEye Live Threat Monitor\n");
-    printf("=====================================================================\n");
+    printf(COLOR_BRIGHT_WHITE"                     KernelEye Live Threat Monitor\n"COLOR_RESET);
+    printf(COLOR_BRIGHT_CYAN"=====================================================================\n"COLOR_RESET);
 
-    printf("\033[36m%-8s %-8s %-10s %-20s %-10s\033[0m\n",
+    printf(COLOR_BRIGHT_YELLOW"%-8s %-8s %-10s %-20s %-10s\n"COLOR_RESET,
            "PID",
            "TYPE",
            "SEVERITY",
            "DETECTION",
            "SCORE");
 
-    printf("---------------------------------------------------------------------\n");
+    printf(COLOR_BRIGHT_BLACK"---------------------------------------------------------------------\n"COLOR_RESET);
 
     fflush(stdout);
 }
