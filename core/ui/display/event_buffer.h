@@ -5,6 +5,9 @@
 
 #define MAX_EVENTS 100
 
+// stat
+extern struct stats ke_stats; 
+
 struct event_entry {
     int pid;
     int type;
