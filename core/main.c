@@ -3,6 +3,7 @@
 #include <bpf/libbpf.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
 #include "ui/banner/banner.h"
@@ -49,13 +50,16 @@ int main(int argc, char *argv[]){
     kern = load_kerneleye();
     if(!kern) return 1;
 
-    printf("KernelEye loaded successfully!\n");
+    printf("[+] Initializing eBPF probes...\n");
 
     // load exec rules once
     exec_rules_init();
     exec_rules_load_from_file(KE_RULES_PATH);
-    printf("Rules loaded successfully!\n");
+    printf("[+] Loading detection rules...\n");
+    printf("[+] Loading detection rules...\n");
 
+    system("clear");   // clean screen for monitoring UI
+    ke_print_banner();
     ke_display_init();
 
     // Creates a new instance of a user ring buffer.
