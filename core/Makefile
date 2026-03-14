@@ -59,7 +59,8 @@ USER_SRCS := \
 	responses/block_response.c \
 	responses/allow_response.c \
 	ui/banner/banner.c \
-	ui/display/display.c
+	ui/display/display.c \
+	ui/display/event_buffer.c
 
 USER_OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(USER_SRCS))
 
