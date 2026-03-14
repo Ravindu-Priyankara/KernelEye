@@ -57,6 +57,7 @@ int main(int argc, char *argv[]){
     printf("[+] Loading detection rules...\n");
 
     system("clear");   // clean screen for monitoring UI
+    struct stats ke_stats = {0}; // initialize all counts to 0
     ke_print_banner();
     ke_description();
     ke_display_init();

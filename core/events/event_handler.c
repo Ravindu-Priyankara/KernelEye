@@ -7,6 +7,7 @@
 #include "../responses/response_engine.h"
 #include "../ui/display/display.h"
 #include "../ui/banner/banner.h"
+#include "../ui/display/event_buffer.h"
 
 
 int handle_event(void *ctx, void *data, size_t size){
