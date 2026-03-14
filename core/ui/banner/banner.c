@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "banner_header.h"
+#include "banner.h"
 
 void ke_print_banner(void) {
 

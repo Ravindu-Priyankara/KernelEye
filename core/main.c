@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
-#include "banner/banner.h"
+#include "ui/banner/banner.h"
+#include "ui/display/display.h"
 
 // ruleset macro
 #define KE_RULES_PATH "../detections/config/rules.conf"
@@ -54,6 +55,8 @@ int main(int argc, char *argv[]){
     exec_rules_init();
     exec_rules_load_from_file(KE_RULES_PATH);
     printf("Rules loaded successfully!\n");
+
+    ke_display_init();
 
     // Creates a new instance of a user ring buffer.
     rb = ring_buffer__new(
