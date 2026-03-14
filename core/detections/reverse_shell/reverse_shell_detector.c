@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <limits.h>
+#include <string.h>
 
 #include "../../common/common_status.h"
 #include "../../common/common_structs.h"
 #include "../rules/exec_rules.h"
 #include "../detector.h"
 
-#define PATH_MAX 256
 
 /*
 *   This function is used to check `connect` + `execve` trigger duration is under 60 seconds or not. And it helps a lot to prevent false positives.
@@ -125,18 +124,25 @@ int reverse_shell_filename_correlation(
 * Returns:
 *   0 on success, 1 on failure
 */
-int get_real_executable_path(pid_t pid, char *buf, size_t buf_len)
+int resolve_real_path_to_event(
+    pid_t pid,
+    char dest[256]
+) 
 {
-    char path[64];  // for store /proc/pid/exe data
+    char path[64]; // /proc/<pid>/exe
+    char tmp[256];
     ssize_t len;
 
-    if(!buf || buf_len == 0) return 1;
+    if(!dest) return 1;
 
-    snprintf(path, sizeof(path), "/proc/%d/exe", pid); 
-    len = readlink(path, buf, buf_len - 1);
+    snprintf(path, sizeof(path), "/proc/%d/exe", pid);
+    len = readlink(path, tmp, sizeof(tmp)-1);
     if(len <= 0) return 1;
 
-    buf[len] = '\0'; // null terminator
+    tmp[len] = '\0';
+    
+    // copy to event->data.filename safely
+    memcpy(dest, tmp, len + 1); // include null terminator
     return 0;
 }
 
@@ -183,10 +189,9 @@ int detect_reverse_shell(
     *       2. Fix common bypasses { capitalized or white space based techniques}
     *   
     */
-    char real_path[PATH_MAX];
-    if(get_real_executable_path(event->hdr.pid, real_path, sizeof(real_path)) == 0) {
-        // overwrite the filename from kernel with the actual real path
-        event->data.filename = real_path;
+    char real_filename[256];
+    if(resolve_real_path_to_event(event->hdr.pid, real_filename) == 0) {
+        memcpy(event->data.filename, real_filename, 256);
     }
 
     err = reverse_shell_filename_correlation(
