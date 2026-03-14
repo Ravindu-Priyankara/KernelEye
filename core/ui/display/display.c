@@ -9,7 +9,7 @@ void ke_display_init(void)
     printf(COLOR_BRIGHT_WHITE"                     KernelEye Live Threat Monitor\n"COLOR_RESET);
     printf(COLOR_BRIGHT_CYAN"=====================================================================\n"COLOR_RESET);
 
-    printf(COLOR_BRIGHT_YELLOW"%-8s %-8s %-10s %-20s %-10s\n"COLOR_RESET,
+    printf(COLOR_BRIGHT_YELLOW"%-8s %-10s %-10s %-20s %-10s\n"COLOR_RESET,
            "PID",
            "TYPE",
            "SEVERITY",
@@ -44,13 +44,13 @@ const char *ke_severity_str(int severity)
     switch(severity)
     {
         case KE_SEV_INFO:
-            return COLOR_BRIGHT_WHITE "INFO" COLOR_RESET;
+            return "INFO";
 
         case KE_SEV_WARNING:
-            return COLOR_BRIGHT_YELLOW "WARNING" COLOR_RESET;
+            return "WARNING";
 
         case KE_SEV_CRITICAL:
-            return COLOR_BRIGHT_RED "CRITICAL" COLOR_RESET;
+            return "CRITICAL";
 
         default:
             return "UNKNOWN";
@@ -84,10 +84,32 @@ void ke_display_event(
     const char *sev_str  = ke_severity_str(severity);
     const char *det_str  = ke_detection_str(detection_id);
 
-    printf("%-8d %-10s %-10s %-20s %-10d\n",
+    const char *color;
+
+    switch(severity)
+    {
+        case KE_SEV_INFO:
+            color = COLOR_BRIGHT_WHITE;
+            break;
+
+        case KE_SEV_WARNING:
+            color = COLOR_BRIGHT_YELLOW;
+            break;
+
+        case KE_SEV_CRITICAL:
+            color = COLOR_BRIGHT_RED;
+            break;
+
+        default:
+            color = COLOR_RESET;
+    }
+
+    printf("%-8d %-10s %s%-10s%s %-20s %-10d\n",
            pid,
            type_str,
+           color,
            sev_str,
+           COLOR_RESET,
            det_str,
            score);
 
@@ -97,7 +119,7 @@ void ke_display_event(
 void ke_print_stats(struct stats *s)
 {
     if(!s) return;
-
+    printf(COLOR_BRIGHT_YELLOW"                            SYSTEM STATUS"COLOR_RESET);
     printf("\n---------------------------------------------------------------------\n");
     printf("Events: %s%-5d%s | ReverseShells: %s%-5d%s | Alerts: %s%-5d%s | Blocks: %s%-5d%s\n",
            COLOR_GREEN, s->events, COLOR_RESET,
