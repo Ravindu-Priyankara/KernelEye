@@ -97,7 +97,7 @@ void ke_display_event(
             break;
 
         case KE_SEV_CRITICAL:
-            color = COLOR_BRIGHT_RED;
+            color = COLOR_RED;
             break;
 
         default:
@@ -119,12 +119,14 @@ void ke_display_event(
 void ke_print_stats(struct stats *s)
 {
     if(!s) return;
-    printf(COLOR_BRIGHT_YELLOW"                            SYSTEM STATUS"COLOR_RESET);
+    printf("\n---------------------------------------------------------------------\n");
+    printf(COLOR_BRIGHT_YELLOW"             SYSTEM STATUS"COLOR_RESET);
     printf("\n---------------------------------------------------------------------\n");
     printf("Events: %s%-5d%s | ReverseShells: %s%-5d%s | Alerts: %s%-5d%s | Blocks: %s%-5d%s\n",
            COLOR_GREEN, s->events, COLOR_RESET,
            COLOR_YELLOW, s->reverse_shells, COLOR_RESET,
            COLOR_RED, s->alerts, COLOR_RESET,
            COLOR_RED, s->blocks, COLOR_RESET);
+    printf("\n---------------------------------------------------------------------\n");
     fflush(stdout);
 }
