@@ -11,7 +11,7 @@ typedef int (*event_printer)(struct ke_event_header *);
 
 // This table hold function type{event->type} and address of the function
 struct {
-    int type;
+    __u32 type;
     event_printer printer;
 } alert_printers [] = {
     {KE_EVENT_REVERSE_SHELL,  print_reverse_shell}    // currently we have reverse shell only
