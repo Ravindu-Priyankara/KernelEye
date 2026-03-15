@@ -7,6 +7,7 @@ int allow_execute(
     struct ke_event_header *event
 )
 {
+    (void)event;
     // do nothing.
     return 0;
 }

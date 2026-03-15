@@ -37,16 +37,11 @@ int print_reverse_shell(
     struct ke_event_header *event
 )
 {
-    //printf("[KernelEye ALERT]. Reverse shell type event detected!\n");
-    //printf("================ Process Info =======================");
-    //printf("Process id: %d\n", event->pid);
-    //printf("Parent Process id: %d\n", event->ppid);
-    //printf("Process filename: %s\n", event->data.filename);
-    //printf("================ Timestamp Info =====================");
-    //printf("Process Triggered TS: %llu\n", event->hdr.ts);
-    //printf("Execve TS: %llu\n", event->data.execve_ts);
-    //printf("Network TS: %llu\n", event->data.net_ts);
-    // TODO: Add network info also
+    // for fix unused parameter warning
+    (void)event;
+    
+    // in the future this function used to log alert
+    
     return 0;
 }
 
