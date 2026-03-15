@@ -20,7 +20,7 @@ struct {
 // This is the function that we pass the alert events. And it chooses which function to pass data
 int alert_execute(struct ke_event_header *event){
     // total table size / 1st function size (each function allocate same size)
-    for(int i = 0; i < sizeof(alert_printers)/sizeof(alert_printers[0]); i++){
+    for(size_t i = 0; i < sizeof(alert_printers)/sizeof(alert_printers[0]); i++){
         if(alert_printers[i].type == event->type){
             return alert_printers[i].printer(event);
         }
