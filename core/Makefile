@@ -41,7 +41,7 @@ BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
 # USERSPACE CONFIG
 # ===============================
 
-CFLAGS = -Wall -Wextra -g \
+CFLAGS = -Wall -Wextra -Werror -g \
 	-I./common -I./helpers -I./events -I./detections -I./policies -I./responses -I./loader -I./maps -I./ui -I./build
 
 USER_SRCS := \
