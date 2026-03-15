@@ -120,7 +120,7 @@ void ke_print_stats(struct stats *s)
 {
     if(!s) return;
     printf("\n---------------------------------------------------------------------\n");
-    printf(COLOR_BRIGHT_YELLOW"             SYSTEM STATUS"COLOR_RESET);
+    printf(COLOR_BRIGHT_YELLOW"                     SYSTEM STATUS"COLOR_RESET);
     printf("\n---------------------------------------------------------------------\n");
     printf("Events: %s%-5d%s | ReverseShells: %s%-5d%s | Alerts: %s%-5d%s | Blocks: %s%-5d%s\n",
            COLOR_GREEN, s->events, COLOR_RESET,
