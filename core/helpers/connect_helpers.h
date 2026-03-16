@@ -127,30 +127,3 @@ static __always_inline int parse_socket_address(const int family, const void *us
         default: return ERR_FAILURE;   // Other socket categories
     }
 }
-/*
-*   This helper has two main tasks
-*       1. copy the event data
-*       2. update the hashmap
-*   Arguments:
-*       1. pid (process id {hashmap key})
-*   Return 0 / -1 {0 = success, -1 = failure}
-*   Stack Allocation: 16 bytes
-*/
-static __always_inline int copy_the_connect_event_data(__u32 pid){
-
-    // event struct for copy 
-    // 8 bytes of stack allocation
-    struct connect_event *event;
-    // for hold return value
-    // 4 bytes of stack allocation
-    int ret;
-    // get the data
-    event = check_map_data_availability(&connect_map ,&pid);
-    if(!event) return ERR_FAILURE;
-
-    // update the map
-    ret = update_map_element(&connect_map, &pid, event, BPF_ANY);
-    if(ret != ERR_SUCCESS) return ERR_FAILURE;
-
-    return ERR_SUCCESS;
-}
