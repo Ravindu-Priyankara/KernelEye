@@ -61,10 +61,11 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     // Copy scratchpad → HASH map (persistent storage)
     if(update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
-    // check is that suspiecious
-    if(check_map_data_availability(&connect_map ,&pid)){
-        if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
+    // check is that reverse shell
+    if(!is_reverse_shell(pid)){
+        return 0;
     }
+    
 
     return 0;
 }
