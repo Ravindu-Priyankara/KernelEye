@@ -57,12 +57,12 @@ struct execve_event{
 
 // This struct use for tracking dup2 state with hashmap
 // Total byte count is 16 bytes
-struct state{
+struct dup2_state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __u8 stdio_redirects; // count of redirects
     // 3 bytes of padding
-}
+};
 /*************************************
 ******** Common Event Header *********
 *************************************/
@@ -103,15 +103,17 @@ struct ke_event_header {
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
-* Size: 296 bytes (aligned to 8).
+* Size: 312 bytes (aligned to 8).
 *
 */
 struct ke_reverse_shell_payload {
     char filename[256]; // filename ("/bin/sh"),
     __u64 execve_ts; // execve timestamp 
     __u64 net_ts; // connect timestamp 
+    __u64 last_dup2_ts; // helps for detection logic like this {connct_ts < dup2_ts < execve_ts}, andit will implements on future varients.
     struct ke_sockaddr addr;
-    // 2 bytes of padding
+    __u8 stdio_redirects;   // for check {stdin/out/err}
+    // 7 bytes of padding {__u8 pad[7]; if needed}
 };
 
 /*****************************
@@ -123,7 +125,16 @@ struct ke_reverse_shell_payload {
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
-* Size: 320 bytes (aligned to 8).
+* Size: 336 bytes (aligned to 8).
+* Developper NOTE:
+*   - Ring buffer streaming every event take 336 bytes.
+*   - We can reduce it via 
+*       - shorter filename buffer [64 ?]
+*       _ string deduplication -> hash the filename and send only if its unknown
+*   My assumption:
+*       - 500k syscalls/sec
+*       - 0-5 detections/sec
+*       - 5 x 336 = 1.6 KB/sec
 *
 */
 struct ke_suspicious_event {
@@ -142,7 +153,7 @@ _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mis
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
 
 // ke_reverse_shell_payload must remain 296 bytes
-_Static_assert(sizeof(struct ke_reverse_shell_payload) == 296,"ke_reverse_shell_payload size mismatch!");
+_Static_assert(sizeof(struct ke_reverse_shell_payload) == 312,"ke_reverse_shell_payload size mismatch!");
 
 // execve_event must remain 272 bytes 
 _Static_assert(sizeof(struct execve_event) == 272, "execve_event struct size mismatch!");

@@ -47,6 +47,10 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     // Stack Allocation: 8 bytes
     struct execve_event *exe_event;
 
+    // for extract given pid has dup2 events
+    // Stack Allocation: 8 bytes
+    struct dup2_state *dup2_state;
+
     // for hold reverse shell type events
     // Stack Allocation: 8 bytes
     struct ke_suspicious_event *r_event;
@@ -58,6 +62,10 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     // extract the execve data
     exe_event = check_map_data_availability(&execve_hash_map, &pid);
     if(!exe_event) return ERR_FAILURE;
+
+    // extract the dup2 data
+    dup2_state = check_map_data_availability(&dup2_map, &pid);
+    if(!dup2_state) return ERR_FAILURE;
 
     // reserve a space
     r_event = bpf_ringbuf_reserve(&alert_map, sizeof(*r_event), 0);
@@ -73,6 +81,8 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     r_event->data.execve_ts = exe_event->execve_ts;
     r_event->data.net_ts = conn_event->net_ts;
     __builtin_memcpy(r_event->data.filename, exe_event->filename, sizeof(r_event->data.filename));
+    r_event->data.last_dup2_ts = dup2_state->last_dup2_ts;
+    r_event->data.stdio_redirects = dup2_state->stdio_redirects;
 
     //copy the ke_sockaddr struct
     __builtin_memcpy(&r_event->data.addr, &conn_event->addr, sizeof(struct ke_sockaddr));
@@ -83,6 +93,7 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     // map cleanup
     if(delete_map_elements(&connect_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
     if(delete_map_elements(&execve_hash_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
-
+    if(delete_map_elements(&dup2_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
+    
     return ERR_SUCCESS;
 }

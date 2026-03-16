@@ -51,7 +51,7 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     tmp_event = check_map_data_availability(&tmp_execve_map, &key);
     if(!tmp_event) return 0;
 
-    // copy to scratchpad(PERCPU ARRAY)
+    // copy to scratchpad(PERCPU ARRAY), This removed stack pressure otherwise it eats half of the eBPF stack limit.{filename[256]}
     if(bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]) < 0) return 0;
 
     // assign values{ppid, execution time}
@@ -61,11 +61,17 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     // Copy scratchpad → HASH map (persistent storage)
     if(update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
-    // check is that reverse shell
+    /*
+    * check is that reverse shell
+    * conditions:
+    *   - connect syscalls should be triggered
+    *   - dup2 should be triggered and it must have descripter count 3 {stdin/out/err}
+    */
     if(!is_reverse_shell(pid)){
         return 0;
     }
     
-
+    // pass data to userland via ring buffer
+    
     return 0;
 }
