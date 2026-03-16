@@ -56,8 +56,9 @@ struct execve_event{
 };
 
 // This struct use for tracking dup2 events with hashmap
-// Total byte count is 16 bytes
+// Total byte count is 24 bytes
 struct dup2_event{
+    __u64 dup2_ts;  // for timestamp
     __u32 ppid; // parent process id
     __u32 fd_old; // old file descripter
     __u32 fd_new; // new file descripter

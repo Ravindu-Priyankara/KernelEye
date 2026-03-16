@@ -69,17 +69,17 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   */
   int ret;
   /* 
-    * This variable used for hols tgid.
+    * This variable used for hold tgid.
     * Stack Allocation: 4 bytes
   */
   __u32 pid;
   /* 
-    * This variable used for hols parent tgid.
+    * This variable used for hold parent tgid.
     * Stack Allocation: 4 bytes
   */
   __u32 ppid;
   /* 
-    * This variable used for hols timestamp.
+    * This variable used for hold timestamp.
     * Stack Allocation: 8 bytes
   */
   __u64 net_ts;
