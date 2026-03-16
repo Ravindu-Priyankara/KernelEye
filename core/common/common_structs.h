@@ -61,7 +61,7 @@ struct state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __u8 stdio_redirects; // count of redirects
-    // 2 bytes of padding
+    // 3 bytes of padding
 }
 /*************************************
 ******** Common Event Header *********
