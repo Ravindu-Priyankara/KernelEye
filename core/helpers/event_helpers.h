@@ -30,7 +30,7 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
 
     // for hold reverse shell type events
     // Stack Allocation: 8 bytes
-    struct ke_reverse_shell_event *r_event;
+    struct ke_suspicious_event *r_event;
 
     // extract the connect data
     conn_event = check_map_data_availability(&connect_map, &pid);
