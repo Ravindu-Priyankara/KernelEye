@@ -8,7 +8,6 @@
 #include "../helpers/event_helpers.h"
 #include "../helpers/common_helpers.h"
 #include "../helpers/connect_helpers.h"
-#include "../helpers/execve_helpers.h"
 
 #include "../maps/maps.h"
 
