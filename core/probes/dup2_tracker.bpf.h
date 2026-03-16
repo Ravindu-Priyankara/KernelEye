@@ -64,8 +64,8 @@ int dup2_enter_handler(
     event = check_map_data_availability(&dup2_map, &pid);
     if(event){
         // Assign the values to the struct to pass values to the HashMap
-        event.last_dup2_ts = dup2_ts;
-        event.stdio_redirects++;
+        event->last_dup2_ts = dup2_ts;
+        event->stdio_redirects++;
     }else{
         /*
         *   This struct use for hold our dup2 data

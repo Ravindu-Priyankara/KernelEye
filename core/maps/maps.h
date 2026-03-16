@@ -48,8 +48,9 @@ struct {
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE); // hashmap maximum entries
-    __type(value, struct dup2_event); // This struct hold the all dup2 events
-} dup2_map SEC("SEC"); // hashmap name
+    __type(key, __u32); // pid
+    __type(value, struct dup2_state); // This struct hold the all dup2 events
+} dup2_map SEC(".maps"); // hashmap name
 
 /****************************************
 *********** Per CPU Array Maps **********

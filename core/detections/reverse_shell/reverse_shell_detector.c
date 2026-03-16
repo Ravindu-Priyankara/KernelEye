@@ -124,7 +124,7 @@ int reverse_shell_filename_correlation(
 *       1 = not my event type
 */
 int detect_reverse_shell(
-    struct ke_reverse_shell_event *event,
+    struct ke_suspicious_event *event,
     struct ke_detection_result *result
 )
 {

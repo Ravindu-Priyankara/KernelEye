@@ -3,7 +3,7 @@
 
 struct event_buffer ke_event_buf = {0};
 
-void add_event_to_buffer(struct ke_reverse_shell_event *event,
+void add_event_to_buffer(struct ke_suspicious_event *event,
                          struct ke_detection_result *result)
 {
     if(!event || !result) return;

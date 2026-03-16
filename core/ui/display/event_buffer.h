@@ -24,7 +24,7 @@ struct event_buffer {
 
 extern struct event_buffer ke_event_buf;
 
-void add_event_to_buffer(struct ke_reverse_shell_event *event,
+void add_event_to_buffer(struct ke_suspicious_event *event,
                          struct ke_detection_result *result);
 
 void ke_display_all_events(void);
