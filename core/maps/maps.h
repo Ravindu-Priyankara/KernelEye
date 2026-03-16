@@ -44,6 +44,13 @@ struct {
     __type(value, struct execve_event); // struct for hold data
 } execve_hash_map SEC(".maps");
 
+// This hashmap used for track dup2 events
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);    // map type
+    __uint(max_entries, HASHMAP_SIZE); // hashmap maximum entries
+    __type(value, struct dup2_event); // This struct hold the all dup2 events
+} dup2_map SEC("SEC"); // hashmap name
+
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
