@@ -120,11 +120,6 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = update_map_element(&connect_map, &pid, &event, BPF_ANY); // save connection details on connect map
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
-  // check is that suspiecious
-  if(check_map_data_availability(&execve_hash_map ,&pid)){
-      if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-  }
-
   // for debugging
   #ifdef DEBUG_MODE
       debug_counter(1); // increment debug counter

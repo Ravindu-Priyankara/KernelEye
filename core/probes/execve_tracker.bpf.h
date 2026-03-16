@@ -72,6 +72,12 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     }
     
     // pass data to userland via ring buffer
-    
+    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
+
+    // for debugging
+    #ifdef DEBUG_MODE
+      debug_counter(1); // increment debug counter
+    #endif
+
     return 0;
 }
