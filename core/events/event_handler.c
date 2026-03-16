@@ -18,8 +18,8 @@ int handle_event(void *ctx, void *data, size_t size){
     // helps to categorize the data by header type
     struct ke_event_header *hdr = data;
 
-    // get all data from reverse shell event
-    struct ke_reverse_shell_event *event = data;
+    // get all data from suspicious event
+    struct ke_suspicious_event *event = data;
 
     // zero-initialized struct to hold event results
     struct ke_detection_result result = {0};

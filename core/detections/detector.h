@@ -12,7 +12,7 @@ typedef struct ke_detector{
     int (*detect)(
         // arg1 = event header 
         // arg2 = detection result
-        struct ke_reverse_shell_event *event,
+        struct ke_suspicious_event *event,
         struct ke_detection_result *result
     );
 } ke_detector;

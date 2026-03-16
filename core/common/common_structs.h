@@ -119,14 +119,14 @@ struct ke_reverse_shell_payload {
 ******************************/
 
 /* 
-* This struct use for streaming `connect + execve` events to the userland
+* This struct use for streaming suspicious events to the userland
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
 * Size: 320 bytes (aligned to 8).
 *
 */
-struct ke_reverse_shell_event {
+struct ke_suspicious_event {
     struct ke_event_header hdr; 
     struct ke_reverse_shell_payload data;   
 };
