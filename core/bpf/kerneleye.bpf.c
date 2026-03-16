@@ -18,5 +18,8 @@
 // execve probe
 #include "../probes/execve_tracker.bpf.h"
 
+// dup2 probe
+#include "../probes/dup2_tracker.bpf.h"
+
 
 char LICENSE[] SEC("license") = "GPL";
