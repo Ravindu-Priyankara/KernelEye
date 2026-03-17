@@ -5,4 +5,5 @@ typedef enum {
     OTHER = 0,
     CONNECT,
     EXECVE,
+    DUP2,
 }common_syscalls;

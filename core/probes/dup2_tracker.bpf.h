@@ -80,6 +80,19 @@ int dup2_enter_handler(
         if(ret != ERR_SUCCESS) return ERR_SUCCESS;
     }
 
+        /*
+    * check is that reverse shell
+    * conditions:
+    *   - connect syscalls should be triggered
+    *   - dup2 should be triggered and it must have descripter count 3 {stdin/out/err}
+    */
+    if(!is_reverse_shell(pid)){
+        return 0;
+    }
+    
+    // pass data to userland via ring buffer
+    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
+
     // for debugging
     #ifdef DEBUG_MODE
         debug_counter(1); // increment debug counter

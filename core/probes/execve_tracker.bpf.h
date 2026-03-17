@@ -67,51 +67,17 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     *   - connect syscalls should be triggered
     *   - dup2 should be triggered and it must have descripter count 3 {stdin/out/err}
     */
-    /*if(!is_reverse_shell(pid)){
+    if(!is_reverse_shell(pid)){
         return 0;
     }
     
     // pass data to userland via ring buffer
-    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;*/
+    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
 
     // for debugging
     #ifdef DEBUG_MODE
       debug_counter(1); // increment debug counter
     #endif
-
-    return 0;
-}
-
-SEC("tracepoint/syscalls/sys_exit_execve")
-int execve_enter_handler(struct trace_event_raw_sys_exit *ctx){
-    long ret;
-
-    /*
-    *   This variable use for hold tgid.
-    *   Stack Allocation: 4 bytes
-    */
-    __u32 pid;
-
-    ret = ctx->ret;
-    if(!ret) return 0;
-
-    // Assign the values
-    pid = get_tgid();
-
-    // validation for prevent null values
-    if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
-
-    // sanitize the pid and ppid
-    if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
-
-    if(ret == 0){ // execve failed
-        if(!is_reverse_shell(pid)){
-            return 0;
-        }
-        
-        // pass data to userland via ring buffer
-        if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
-    }
 
     return 0;
 }

@@ -22,8 +22,14 @@ static __always_inline int is_reverse_shell(__u32 pid){
     // Stack Allocation: 8 bytes
     struct dup2_state *dup2_state = check_map_data_availability(&dup2_map, &pid);
 
+    // for extract givent pid has execve events.
+    // Stack Allocation: 8 bytes
+    struct execve_event *execve_event = check_map_data_availability(&execve_hash_map, &pid);
+
+    if(!conn_event || !dup2_state || !execve_event) return 0;
+
     // if every checks true return true(1) otherwise false(0)
-    return dup2_state && conn_event && dup2_state->stdio_redirects >= 2; // some payloads skip stderr thats why i choose 2 rather than strictly depend on 3
+    return dup2_state->stdio_redirects >= 2; // some payloads skip stderr thats why i choose 2 rather than strictly depend on 3
 }
 
 /*
