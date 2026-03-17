@@ -5,13 +5,12 @@
 #include "../common/common_validation.h"
 #include "../common/common_syscalls.h"
 #include "connect_helpers.h"
-#include "execve_helpers.h"
 
 /*
 * This helper used for get the TGID from events
 * Stack Allocation: 0 bytes
 */
-static __u32 __always_inline get_tgid(void){
+static __always_inline __u32 get_tgid(void){
     return bpf_get_current_pid_tgid() >> 32; // return tgid
 }
 
@@ -19,7 +18,7 @@ static __u32 __always_inline get_tgid(void){
 * This heler used for get the PID from events
 * Stack Allocation: 0 bytes
 */
-static __u32 __always_inline get_pid(void){
+static __always_inline __u32 get_pid(void){
     return (__u32)bpf_get_current_pid_tgid();
 }
 
@@ -27,7 +26,7 @@ static __u32 __always_inline get_pid(void){
 * This helper used for get syscall trigger time(nano seconds)
 * Stack Allocation: 0 bytes
 */
-static __u64 get_trigger_time(void){
+static __always_inline __u64 get_trigger_time(void){
     return bpf_ktime_get_ns();
 }
 
@@ -35,7 +34,7 @@ static __u64 get_trigger_time(void){
 * This helper used for get the PPID from task struct
 * Stack Allocation: 24 bytes
 */
-static __u32 __always_inline get_ppid(void){
+static __always_inline __u32 get_ppid(void){
     /* 
     * Get the current task pointer
     * Stack Allocation: 8 bytes
@@ -96,7 +95,7 @@ static __always_inline void *check_map_data_availability(void *map, const void *
 *       0 / -1 {0 = Success, -1 = failure}
 *   Stack Allocation: 16 bytes
 */
-static int __always_inline update_map_element(void *map, const void *key, const void *value, __u64 flags){
+static __always_inline int update_map_element(void *map, const void *key, const void *value, __u64 flags){
     //prevent null data
     if(validate_not_null_multiple(map, key, value) != ERR_SUCCESS) return ERR_FAILURE;
 
@@ -111,38 +110,6 @@ static int __always_inline update_map_element(void *map, const void *key, const 
     }else return ERR_SUCCESS; // Key already exists
 }
 
-/*
-*   This helper function is used for categorizing request types and parsing the data
-*   Arguments:
-*       1. ret (return value)
-*       2. request type(syscall name)
-*       3. pid
-*   Return:
-*       0 / -1 {0 = Success, -1 = failure}
-*   Stack Allocation: 0 bytes
-*/
-static __always_inline int identify_the_return_request_type(int ret, common_syscalls request, __u32 pid){
-    //validate the argument
-    if(validate_not_null_int(ret) != ERR_SUCCESS) return ERR_FAILURE;
-    if(validate_not_null_int(request) != ERR_SUCCESS) return ERR_FAILURE;
-    if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_FAILURE;
-
-    //sanitize the pid
-    if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_FAILURE;
-
-    if(ret == ERR_SUCCESS){
-        //  successful attempts
-        switch(request){
-            case CONNECT:{
-                //This helper function located at `connect_helpers.h` file 
-                return copy_the_connect_event_data(pid);
-            }case EXECVE: {
-                return copy_the_execve_event_data(pid);
-            }
-            default: return ERR_FAILURE;   // default handler
-        }
-    }else return ERR_FAILURE;
-}
 
 /*
 *   This helper is used to delete the hashmap saved data.

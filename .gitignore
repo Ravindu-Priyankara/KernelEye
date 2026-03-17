@@ -56,3 +56,10 @@ dkms.conf
 
 # repo strategy
 strategy/
+
+# macOS DS_Store
+.DS_Store
+**/.DS_Store
+
+# Delete all .DS_Store files recursively {command}
+#find . -name ".DS_Store" -delete

@@ -36,22 +36,6 @@ struct {
     __type(value, struct connect_event);   // This struct hold the all connect events data
 }connect_map SEC(".maps");  // hashmap name
 
-//This hashmap used for temporary store connect events
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);    // map type
-    __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
-    __type(key, __u32); // key = pid
-    __type(value, struct connect_event);   // This struct hold the all connect events data
-}tmp_connect_map SEC(".maps");  // hashmap name
-
-// This hashmap used for temporary store execve events
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);   // map type
-    __uint(max_entries, HASHMAP_SIZE); // hashmap size
-    __type(key, __u32); // pid
-    __type(value, struct execve_event); // struct for hold data
-} tmp_execve_hash_map SEC(".maps"); // hashmap name
-
 // This hashmap used for track execve events {permanent struct}
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);   // map type
@@ -59,6 +43,14 @@ struct {
     __type(key, __u32); // pid
     __type(value, struct execve_event); // struct for hold data
 } execve_hash_map SEC(".maps");
+
+// This hashmap used for track dup2 events
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);    // map type
+    __uint(max_entries, HASHMAP_SIZE); // hashmap maximum entries
+    __type(key, __u32); // pid
+    __type(value, struct dup2_state); // This struct hold the all dup2 events
+} dup2_map SEC(".maps"); // hashmap name
 
 /****************************************
 *********** Per CPU Array Maps **********

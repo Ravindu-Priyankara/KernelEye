@@ -40,15 +40,6 @@
  * ===========================================================
 */
 
-#include "../common/common_headers.h"
-#include "../common/common_structs.h"
-#include "../maps/maps.h"
-#include "../helpers/common_helpers.h"
-#include "../helpers/connect_helpers.h"
-#include "../common/common_validation.h"
-#include "../common/common_status.h"
-#include "../common/common_debugging.h"
-#include "../common/common_syscalls.h"
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
@@ -78,17 +69,17 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   */
   int ret;
   /* 
-    * This variable used for hols tgid.
+    * This variable used for hold tgid.
     * Stack Allocation: 4 bytes
   */
   __u32 pid;
   /* 
-    * This variable used for hols parent tgid.
+    * This variable used for hold parent tgid.
     * Stack Allocation: 4 bytes
   */
   __u32 ppid;
   /* 
-    * This variable used for hols timestamp.
+    * This variable used for hold timestamp.
     * Stack Allocation: 8 bytes
   */
   __u64 net_ts;
@@ -126,7 +117,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   event.net_ts = net_ts;
 
   //update the hash map
-  ret = update_map_element(&tmp_connect_map, &pid, &event, BPF_ANY); // temporary saved connection details
+  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY); // save connection details on connect map
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
@@ -137,54 +128,3 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   return ERR_SUCCESS;
 
 }
-
-/*
-* This tracepoint is used to filter out successful connections
-* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_exit_connect/format
-* Stack Allocation: 96 bytes
-*/
-SEC("tracepoint/syscalls/sys_exit_connect")
-int connect_exit_handler(struct trace_event_raw_sys_exit *ctx){
-  /*
-  * For hold return value
-  * Stack Allocation: 4 bytes
-  */
-  long ret;
-
-  /*
-  * for hold pid value
-  * Stack Allocation: 4 bytes
-  */
-  __u32 pid;
-
-  /*
-    * This struct used for hold our IPV4 or IPV6 data
-    * Stack Allocation: 40 bytes
-  */
-  struct connect_event event = {};
-
-  //get the pid for filter data
-  pid = get_tgid();
-
-  // get the retun value
-  ret = ctx->ret;
-
-  // prevent null values
-  if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-  if(validate_not_null_long(ret) != ERR_SUCCESS) return ERR_SUCCESS;
-
-  //sanitize the pid
-  if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_SUCCESS;
-
-  // update the correct map
-  ret = identify_the_return_request_type(ret, CONNECT, pid);
-  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
-
-  //remove temp map data
-  ret = delete_map_elements(&tmp_connect_map, &pid);
-  if(ret != ERR_SUCCESS) return ERR_SUCCESS;
-
-  return ERR_SUCCESS;
-}
-
-char LICENSE[] SEC("license") = "GPL"; 
