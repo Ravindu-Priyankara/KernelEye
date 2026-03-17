@@ -3,7 +3,7 @@
 #include "common_status.h"
 
 // Max pid
-#define MAX_PID 4194304
+#define MAX_PID 4194304 // rather than hardcode we should this read via "/proc/sys/kernel/pid_max"
 
 //single pointer validation
 static int __always_inline validate_not_null(const void *ptr)
@@ -44,7 +44,12 @@ static int __always_inline validate_not_null_int(const int key){
 }
 
 // sanitize the PID
+// This helper function will be removed in the future.
 static int __always_inline sanitize_the_pid(__u32 key){
     if(key == 0 || key > MAX_PID) return ERR_FAILURE;
     return ERR_SUCCESS;
+}
+// goal is validating pid. because we don't need swapper / idle task (init-level kernel thread)
+static __always_inline int is_valid_pid(__u32 pid){
+    return pid > 0 && pid < MAX_PID;
 }

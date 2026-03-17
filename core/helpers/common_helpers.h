@@ -110,6 +110,22 @@ static __always_inline int update_map_element(void *map, const void *key, const 
     }else return ERR_SUCCESS; // Key already exists
 }
 
+/*
+*   This helper function is used to update the map without checking whether the data has already been saved or not.
+*   Arguments:
+*       - map(pointer) => map name
+*       - key(pointer) => tgid is the key
+*       - value(pointer) => struct that hold values
+*       - flags(unsigned 64bit integer) => Mainly `BPF_ANY`
+*   Return:
+*       - 0 / -1 {0 = Success, -1 = failure}
+*   Stack Allocation: 4 bytes
+*/
+static __always_inline int force_update_map_element(void *map, const void *key, const void *value, __u64 flags){
+    // 4 bytes of stack allocation
+    int ret = bpf_map_update_elem(map, key, value, flags);  // update the elements
+    return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
+}
 
 /*
 *   This helper is used to delete the hashmap saved data.

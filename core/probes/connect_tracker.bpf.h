@@ -2,7 +2,7 @@
  * Kernel Eye - eBPF Runtime Security Framework
  * SPDX-License-Identifier: MIT
  *
- * File: connect_tracker.bpf.c
+ * File: connect_tracker.bpf.h
  * Description:
  *   This is an eBPF program that is used to track `connect syscall`.
  *   This keep record of every process that triggered the `connect syscall`.
@@ -20,9 +20,6 @@
  *    sys_enter_connect:
  *        - IPv4 path  ≈ 120 bytes
  *        - IPv6 path  ≈ 136 bytes
- *
- *    sys_exit_connect:
- *        - ≈ 96 bytes
  *
  *  Note:
  *    Manual calculations are approximate and may differ due to
@@ -91,14 +88,35 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
   if(ret < 0)return 0;
 
-  // Socket family identifier
+  /*
+  * get the socket family {IPV4/IPV6}
+  *
+  * Defined in:
+  *     - helpers/connect_helpers.h
+  *
+  * Why?
+  *     - for copy ip address, we should define the socket struct according to the socket family.
+  */
   ret = get_socket_family(&sa);
   if(ret == 0) return 0;
 
-  // According to socket family, This helps to get IPV4 or IPV6 data
+  /*
+  * According to socket family, This helps to get IPV4 or IPV6 data
+  *
+  * Defined in:
+  *   - helpers/connect_helpers.h
+  * 
+  * Purpose:
+  *   - parse_socket_address helper task is parse pointers to correct helpers for assign socket data.
+  *   - After that, we have the IP and port.
+  */
   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
   if(ret < 0) return 0;
 
+  /*
+  * Defined in:
+  *   - helpers/common_helpers.h
+  */
   pid = get_tgid(); // process id
   ppid = get_ppid(); // parent process id
   net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)

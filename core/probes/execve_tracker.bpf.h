@@ -32,6 +32,12 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     */
     struct execve_event *tmp_event;
 
+    /*
+    *   This variable use for error handling.
+    *   Stack Allocation: 4 bytes
+    */
+    int ret;
+
 
     // Assign the values
     pid = get_tgid();
@@ -52,20 +58,23 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     if(!tmp_event) return 0;
 
     // copy to scratchpad(PERCPU ARRAY), This removed stack pressure otherwise it eats half of the eBPF stack limit.{filename[256]}
-    if(bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]) < 0) return 0;
+    ret = bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]);
+    if(ret < 0){
+        tmp_event->filename[0] = 0; // mark filename as unknown
+    }
 
     // assign values{ppid, execution time}
     tmp_event->ppid = ppid;
     tmp_event->execve_ts = execve_ts;
 
-    // Copy scratchpad → HASH map (persistent storage)
-    if(update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
+    // Copy scratchpad -> HASH map (persistent storage)
+    if(force_update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
     /*
     * check is that reverse shell
     * conditions:
     *   - connect syscalls should be triggered
-    *   - dup2 should be triggered and it must have descripter count 3 {stdin/out/err}
+    *   - dup2 should be triggered and it must have descripter count 2 or higher {stdin/out/err}
     */
     if(!is_reverse_shell(pid)){
         return 0;
