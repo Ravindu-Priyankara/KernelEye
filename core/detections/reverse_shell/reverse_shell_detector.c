@@ -4,6 +4,7 @@
 #include "../../common/common_structs.h"
 #include "../rules/exec_rules.h"
 #include "../detector.h"
+#include "../../policies/policy_engine.h"
 
 
 /*
@@ -50,7 +51,6 @@ int reverse_shell_time_correlation(
     result->detection_id = KE_DET_CONNECT_WITH_EXECVE; // TODO: In the future, we should change the detection id overwrite design bug.{fix: use bit flags `|=` and also it will effect to policies and ui.}
     result->score += 30;
     result->severity = KE_SEV_INFO;
-    result->detected = true;
 
     /*
     *   Usually kernel streamed every events have redirects >= 2.
@@ -59,13 +59,11 @@ int reverse_shell_time_correlation(
         // common pattern {stdin/out/err}
         result->detection_id = KE_DET_REVERSE_SHELL;
         result->score += 40;
-        result->severity = KE_SEV_INFO;
-        result->detected = true;
 
         // strong signal -> upgrade severity
         if (execve_ts > dup2_ts && (execve_ts - dup2_ts < 5ULL * 1000000000ULL)) {
             result->score += 20;
-            result->severity = KE_SEV_CRITICAL;
+            if(KE_SEV_CRITICAL > result->severity) result->severity = KE_SEV_CRITICAL;
             // others not overwrite
         }
 
@@ -117,9 +115,8 @@ int reverse_shell_filename_correlation(
         // if it has suspicious filename = warning
         // if it quick trigger + suspicious filnemae = critical
         result->detection_id = KE_DET_REVERSE_SHELL;
-        result->severity = (result->score >= 60) ? KE_SEV_CRITICAL : KE_SEV_WARNING;
+        result->severity = (result->score >= 70) ? KE_SEV_CRITICAL : KE_SEV_WARNING;
         result->score += rule->severity;
-        result->detected = true;
     }
 
     return 0;
@@ -177,11 +174,17 @@ int detect_reverse_shell(
         result
     );
 
-    // 100 is the highest score. so if its exeed we should fix that.
-    if (result->score > 100)
-    result->score = 100;
-
     if(err) return 0;
+
+    // 100 is the highest score. so if its exeed we should fix that.
+    if (result->score > 100) result->score = 100;
+
+    // make detection true it has score
+    if(result->score > 0) result->detected = true;
+
+    if(result->score >= BLOCK_SCORE) result->severity = KE_SEV_CRITICAL;
+    else if(result->score >= ALERT_SCORE) result->severity = KE_SEV_WARNING;
+    else result->severity = KE_SEV_INFO;
 
     return result->detected;
 }

@@ -40,5 +40,5 @@ enum ke_policy_result{
 *
 *   These values can be tuned later to reduce false positives.
 */
-#define BLOCK_SCORE 80
-#define ALERT_SCORE 60
+#define BLOCK_SCORE 70
+#define ALERT_SCORE 40
