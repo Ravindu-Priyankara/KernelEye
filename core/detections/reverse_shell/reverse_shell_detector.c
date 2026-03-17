@@ -63,7 +63,7 @@ int reverse_shell_time_correlation(
         result->detected = true;
 
         // strong signal -> upgrade severity
-        if (execve_ts > dup2_ts && (execve_ts - dup_ts < 5ULL * 1000000000ULL)) {
+        if (execve_ts > dup2_ts && (execve_ts - dup2_ts < 5ULL * 1000000000ULL)) {
             result->score += 20;
             result->severity = KE_SEV_CRITICAL;
             // others not overwrite
