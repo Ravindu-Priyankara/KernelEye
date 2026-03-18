@@ -1,4 +1,50 @@
-
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+* Kernel Eye - eBPF Runtime Security Framework
+*
+* File: execve_tracker.bpf.h
+* Description:
+*   This is an eBPF program that is used to track `execve syscall`.
+*   This keep record of every process that triggered the `execve syscall`.
+*
+* Author: Ravindu Priyankara
+* Year: 2026
+*
+* ============ Stack Usage ===============================================
+*
+*  Real Verifier Stack Depth:
+*    Command: sudo bpftool prog dump xlated id <id>
+*    Result : Maximum stack depth = 24 bytes
+*
+* ==================== KernelEye eBPF Stack Map (r10) ====================
+*
+* r10: frame pointer (top of stack)
+* │
+* │  r10 -0           : scratch / temporary usage
+* │
+* |  r10 -8            : struct task_struct *parent, pointer for extract parent ppid(helpers/common_helpers.h)
+* |  r10 -12           : __u32 ppid {inside the parent ppid extraction helper function}
+* |  r10 -16           : __u32 pid
+* │  r10 -20           : __u32 key
+* │
+* Total stack used: 24 bytes
+* Max allowed: 512 bytes -> safe 
+*
+* Notes:
+*  - Stack size = max depth reached thats why additional 4 bytes have => [8 bytes pointer][4 bytes ppid][4 bytes pid][4 bytes key][4 bytes unused] , usage = 20 bytes but allocation 24 bytes
+*  - Helps debugging, verifier checks, and future maintenance
+* ========================================================================
+*
+* ============ Instruction Count =========================================
+*
+*  Real Instruction Count:
+*    sudo bpftool prog dump xlated id <id>
+*    Result: 277 instructions
+*
+*  Byte Size:
+*    xlated 2216B  (2216 / 8 = 277 instructions)
+* =========================================================================
+*/
 
 SEC("tracepoint/syscalls/sys_enter_execve")
 int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -39,15 +85,13 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     int ret;
 
 
-    // Assign the values
+    /*
+    * Defined in:
+    *   - helpers/common_helpers.h
+    */
     pid = get_tgid();
     ppid = get_ppid();
     execve_ts = get_trigger_time();
-
-    // validation for prevent null values
-    if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
-    if(validate_not_null_u32(ppid) != ERR_SUCCESS) return 0;
-    if(validate_not_null_u64(execve_ts) != ERR_SUCCESS) return 0;
 
     // sanitize the pid and ppid
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
