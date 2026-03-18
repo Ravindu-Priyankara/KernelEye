@@ -57,6 +57,18 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     tmp_event = check_map_data_availability(&tmp_execve_map, &key);
     if(!tmp_event) return 0;
 
+    /*
+    * BUG NOTE:
+    * Previously, execve events were dropped because:
+    * - argv/envp could be NULL
+    * - bpf_probe_read_user_str fails silently in that case
+    * - map update logic skipped duplicate keys
+    *
+    * Fix:
+    * - handle NULL safely
+    * - ensure event always written
+    * - force update maps
+    */
     // copy to scratchpad(PERCPU ARRAY), This removed stack pressure otherwise it eats half of the eBPF stack limit.{filename[256]}
     ret = bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]);
     if(ret < 0){

@@ -1,40 +1,63 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Kernel Eye - eBPF Runtime Security Framework
- * SPDX-License-Identifier: MIT
- *
- * File: connect_tracker.bpf.h
- * Description:
- *   This is an eBPF program that is used to track `connect syscall`.
- *   This keep record of every process that triggered the `connect syscall`.
- *
- * Author: Ravindu Priyankara
- * Year: 2026
- *
- * ============ Stack Usage ==================================
- *
- *  Real Verifier Stack Depth:
- *    Command: sudo bpftool prog dump xlated id <id>
- *    Result : Maximum stack depth = 100 bytes
- *
- *  Manual Stack Estimation (Pre-verifier Calculation):
- *    sys_enter_connect:
- *        - IPv4 path  ≈ 120 bytes
- *        - IPv6 path  ≈ 136 bytes
- *
- *  Note:
- *    Manual calculations are approximate and may differ due to
- *    compiler optimizations, stack slot reuse, and verifier analysis.
- *
-* 
- * ============ Instruction Count ============================
- *
- *  Real Instruction Count:
- *    sudo bpftool prog dump xlated id <id>
- *    Result: 143 instructions
- *
- *  Byte Size:
- *    xlated 1144B  (1144 / 8 = 143 instructions)
- * ===========================================================
+* Kernel Eye - eBPF Runtime Security Framework
+*
+* File: connect_tracker.bpf.h
+* Description:
+*   This is an eBPF program that is used to track `connect syscall`.
+*   This keep record of every process that triggered the `connect syscall`.
+*
+* Author: Ravindu Priyankara
+* Year: 2026
+*
+* ============ Stack Usage ==================================
+*
+*  Real Verifier Stack Depth:
+*    Command: sudo bpftool prog dump xlated id <id>
+*    Result : Maximum stack depth = 104 bytes
+*
+* ==================== KernelEye eBPF Stack Map (r10) ====================
+*
+* r10: frame pointer (top of stack)
+* │
+* │  r10 -0           : scratch / temporary usage
+* │
+* │  r10 -8           : struct sockaddr_in6 sin6_port
+* │  r10 -16          : struct sockaddr_in6 sin6_addr part
+* │  r10 -24          : struct sockaddr_in6 sin6_addr part / struct sockaddr_in sin
+* │  r10 -32          : struct sockaddr_in6 / struct sockaddr_in overlap / parent ptr temp
+* │  r10 -36          : __u32 ppid temporary
+* │  r10 -48          : struct sockaddr sa
+* │  r10 -56          : struct sockaddr sa (rest)
+* │  r10 -60          : event->addr.port (ipv4/ipv6)
+* │  r10 -64          : struct connect_event event (ipv6 part)
+* │  r10 -68          : connect_event event (ipv6 part)
+* │  r10 -72          : connect_event event (ipv4/ipv6 part)
+* │  r10 -76          : connect_event event (ipv4 part)
+* │  r10 -80          : event->addr.family
+* │  r10 -88          : event->net_ts
+* │  r10 -96          : event->ppid
+* │  r10 -100         : pid / general temporary storage
+* │
+* Total stack used: 104 bytes
+* Max allowed: 512 bytes -> safe 
+*
+* Notes:
+*  - sin and sin6 overlap in memory since their lifetimes don't conflict
+*  - All u64 writes are 8-byte aligned, verifier-friendly
+*  - For larger structs, consider BPF maps instead of stack
+*  - Helps debugging, verifier checks, and future maintenance
+* ========================================================================
+*
+* ============ Instruction Count ============================
+*
+*  Real Instruction Count:
+*    sudo bpftool prog dump xlated id <id>
+*    Result: 143 instructions
+*
+*  Byte Size:
+*    xlated 1144B  (1144 / 8 = 143 instructions)
+* ===========================================================
 */
 
 
@@ -121,21 +144,32 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ppid = get_ppid(); // parent process id
   net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
 
-  // prevent null values
-  if(validate_not_null_u32(pid) != ERR_SUCCESS) return 0;
-  if(validate_not_null_u32(ppid) != ERR_SUCCESS) return 0;
-  if(validate_not_null_u64(net_ts) != ERR_SUCCESS) return 0;
 
   //sanitize the data
+  /*
+  * Sanitize the pid and ppid.
+  *
+  * Defined in:
+  *   - common/common/validation.h
+  *
+  * Purpose:
+  *   - Avoid track the kernel threads or idle tasks
+  */
   if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
   if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
 
-  // assign values
+  // Assign values to the connect event struct and later save it via the connect hash map.
   event.ppid = ppid;
   event.net_ts = net_ts;
 
-  //update the hash map
-  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY); // save connection details on connect map
+  /*
+  * Save the connect struct via connect hash map
+  * Defined in:
+  *   - helpers/common_helpers.h
+  * Developer Note:
+  *   - If the same program triggers this syscall twice, it will not update the data. So if we need to fix that, switch to the force_update helper function.
+  */
+  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging
