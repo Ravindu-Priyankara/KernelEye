@@ -5,6 +5,19 @@
 extern ke_detector detectors[];
 extern int detector_count;  
 
+/*
+*   Detection engine is used to pass data to every detector.
+*   Arguments:
+*       - ke_suspicious_event pointer => for access kernel streamed events data
+*       - ke_detection_result pointer => store detection result
+*   return:
+*       1 = detection executed
+*       0 = failures / not detected
+* Developer Note:
+*   In the future, this should be improved. 
+*   Reason:
+*       1. The detection engine passes the data to every detector, and it eats performance.
+*/
 int run_detections (
     struct ke_suspicious_event *event,
     struct ke_detection_result *result

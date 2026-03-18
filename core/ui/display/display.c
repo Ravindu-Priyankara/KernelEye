@@ -4,6 +4,7 @@
 #include "../../common/common_structs.h"
 #include "../color.h"
 
+// Initialize the console UI for KernelEye
 void ke_display_init(void)
 {
     printf(COLOR_BRIGHT_WHITE"                     KernelEye Live Threat Monitor\n"COLOR_RESET);
@@ -21,6 +22,7 @@ void ke_display_init(void)
     fflush(stdout);
 }
 
+// Convert numeric event type to string
 const char *ke_event_type_str(int type)
 {
     switch(type)
@@ -39,6 +41,7 @@ const char *ke_event_type_str(int type)
     }
 }
 
+// Convert severity level to string
 const char *ke_severity_str(int severity)
 {
     switch(severity)
@@ -56,7 +59,7 @@ const char *ke_severity_str(int severity)
             return "UNKNOWN";
     }
 }
-
+// Convert detection ID to string
 const char *ke_detection_str(int id)
 {
     switch(id)
@@ -72,6 +75,7 @@ const char *ke_detection_str(int id)
     }
 }
 
+// Display a single event in the UI
 void ke_display_event(
     int pid,
     int type,
@@ -116,6 +120,7 @@ void ke_display_event(
     fflush(stdout);
 }
 
+// Print overall system statistics
 void ke_print_stats(struct stats *s)
 {
     if(!s) return;

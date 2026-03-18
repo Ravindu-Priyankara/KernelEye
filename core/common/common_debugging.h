@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef DEBUG_MODE
-
+// debugging map 
 struct {
     __uint(type, BPF_MAP_TYPE_ARRAY);
     __uint(max_entries, 1);
