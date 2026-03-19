@@ -42,6 +42,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning princ
 ### In Progress
 - `dup3` syscall tracking
 - `fcntl` syscall monitoring for advanced descriptor manipulation
+- **PPID / parent-child tracking for improved reverse shell detection**
 
 ### Planned
 - Enhanced syscall correlation engine

@@ -83,6 +83,7 @@ This ensures:
 - `dup3` syscall tracking (extended descriptor handling)
 - `fcntl` tracking for advanced descriptor manipulation detection
 - Stronger syscall correlation logic
+- **PPID / parent-child tracking** to handle forked or cloned processes
 
 ---
 
