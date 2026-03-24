@@ -69,7 +69,12 @@ Instead of relying on single indicators, it uses:
 
 ## 📚 Documentation
 
-👉 Full documentation: see [docs](./docs)
+👉 Full documentation: see [docs](./docs/README.md)
+
+### Quick Links
+
+* [Demo](./DEMO.md) — example usage and workflow
+* [Installation](./INSTALL.md) — setup instructions
 
 ### Suggested Reading Path
 
