@@ -95,22 +95,6 @@ response engine
 
 ---
 
-## 📸 Screenshots
-
-> Add screenshots in:
-
-```text
-docs/02_Architecture/images/
-```
-
-Suggested:
-
-* System Overview
-* Data Flow
-* Kernel Layer
-* Detection Output
-* Live UI
-
 ---
 
 ## 🧠 Key Insight
