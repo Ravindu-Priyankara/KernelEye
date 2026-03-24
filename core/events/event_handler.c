@@ -9,7 +9,9 @@
 #include "../ui/banner/banner.h"
 #include "../ui/display/event_buffer.h"
 
-
+/*
+*   Kernel-streamed events data comes to this function.
+*/
 int handle_event(void *ctx, void *data, size_t size){
     // fix unused parameter warnings
     (void)ctx;
@@ -30,22 +32,40 @@ int handle_event(void *ctx, void *data, size_t size){
     // 1 = detected
     // 0 = not detected
     if(run_detections(event, &result)){
-        // get the policies
+        /*
+        *   Get the policy results. Policies defined this process should execute, warn, or block, but never take action.
+        *   Defined in:
+        *       - policies/policy_engine.h
+        */
         enum ke_policy_result action = evaluate_policy(&result);
 
+        /*
+        * Execute the responses. Policies defined action, executed through the response engine.
+        * Types:
+        *   - Allow
+        *   - Warning
+        *   - Block
+        */
         ke_execute_response(action, hdr);
 
+        /*
+        * Used for display events and other info.
+        * Defined in:
+        *   - ui/display/display.h
+        */
         if(result.detection_id == KE_DET_REVERSE_SHELL)
             ke_stats.reverse_shells++;
         if(result.severity == KE_SEV_WARNING)
             ke_stats.alerts++;
         if(result.severity == KE_SEV_CRITICAL)
             ke_stats.blocks++;
-
-
     }
 
-    // add to buffer
+    // add to buffer (for ui)
+    /*
+    * Defined in:
+    *   - ui/display/event_buffer.h
+    */
     add_event_to_buffer(event, &result);
 
     // refresh screen

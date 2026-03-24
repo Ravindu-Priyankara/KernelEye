@@ -8,9 +8,8 @@ extern int detect_reverse_shell(
 );
 
 /*
-*   In the future, this should be improved. 
-*   Reason:
-*       1. The event handler passes data to every detector, and it eats performance.
+* 
+*   This is the list of detectors kernel eye used.
 */
 ke_detector detectors[] = {
     {.name = "reverse_shell", .detect = detect_reverse_shell}

@@ -96,7 +96,11 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     // submit the values
     bpf_ringbuf_submit(r_event, 0);
 
-    // map cleanup
+    /*
+    *   this used for delete dectected event data from hash maps
+    * Developer Note
+    *   - but in the future this should be delay. because this is too early to delete
+    */
     if(delete_map_elements(&connect_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
     if(delete_map_elements(&execve_hash_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
     if(delete_map_elements(&dup2_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;

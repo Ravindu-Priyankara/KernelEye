@@ -27,7 +27,7 @@ struct kerneleye_bpf *load_kerneleye(){
         return NULL;
     }
 
-    printf("KernelEye loaded\n");
+    //printf("KernelEye loaded\n");
 
     return skel;
 }
