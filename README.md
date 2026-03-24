@@ -5,6 +5,8 @@
 
 ---
 
+<img src="./docs/02_Architecture/images/kerneleye.png">
+
 ## 🚀 Overview
 
 KernelEye is a modular runtime security system built using **eBPF** and **C**, designed to detect and respond to suspicious process behavior in real time.

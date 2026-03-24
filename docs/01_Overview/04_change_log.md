@@ -6,7 +6,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning princ
 
 ---
 
-## [v1.0.0] - Initial Release (2026-03-19)
+## [v1.0.0] - Initial Release (2026-03-25)
 
 ### Added
 - eBPF-based syscall monitoring framework
