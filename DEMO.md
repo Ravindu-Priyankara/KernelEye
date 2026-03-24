@@ -46,6 +46,8 @@ make
 ./revsh_slow
 ./revsh_partial
 ./revsh_evasion
+./revsh_fname
+./revsh_fname_timing
 ```
 
 ---
@@ -58,6 +60,8 @@ make
 | `revsh_slow`    | Delayed execution to test timing correlation  |
 | `revsh_partial` | Partial syscall pattern (incomplete behavior) |
 | `revsh_evasion` | Attempts to bypass detection logic            |
+| `revsh_fname`   | Filename obfuscation using renamed shell binary |
+| `revsh_fname_timing` | Combined evasion using filename obfuscation + timing delays  |
 
 ---
 
@@ -83,7 +87,9 @@ response engine
 
 * `revsh_fast` → 🔴 Detected (high confidence)
 * `revsh_slow` → 🟡 Detected but reduce score (timing evasion)
-* `revsh_partial` → ⚪ Ignored or low severity
+* `revsh_fname` → 🔴 Detected (critical, filename bypass ineffective)
+* `revsh_fname_timing` → 🟡 Detected with lower score (~80) due to timing delays + file name bypass
+* `revsh_partial` → ⚪ Ignored
 * `revsh_evasion` → 🧪 Used for testing detection limits
 
 ---
@@ -92,8 +98,6 @@ response engine
 
 > (Will be added)
 
-
----
 
 ---
 
