@@ -52,6 +52,20 @@ struct {
     __type(value, struct dup2_state); // This struct hold the all dup2 events
 } dup2_map SEC(".maps"); // hashmap name
 
+/*
+*   This map is used to hold generated context IDs.
+*   Benefits:
+*       - for track parents and childs.
+*   Assumptions:
+*       - Keys are always unique, but CIDs don't have to be. Since one parent can have several children, we're letting multiple unique keys share the same CID.
+*/
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, HASHMAP_SIZE);
+    __type(key, __u32); //pid(tgid) not thread id
+    __type(value, __u64); // context id(CID)
+} ctx_map SEC(".maps");
+
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
@@ -70,7 +84,7 @@ struct {
 
 /*
 *   This map is used for generate context id(CID). 
-*   Benifits:
+*   Benefits:
 *       - Always exists (index 0)
 *       - Fast Lookup
 *       - Verifier Safe
