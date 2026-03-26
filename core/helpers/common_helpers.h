@@ -140,7 +140,7 @@ static __always_inline __u64 get_or_create_cid(__u32 pid){
     *       and both assign different CID's to same PID. 
     *       
     */
-    if(bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_ANY)!= 0) return 0;
+    if(bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_NOEXIST)!= 0) return 0;
 
     return cid;
 }
