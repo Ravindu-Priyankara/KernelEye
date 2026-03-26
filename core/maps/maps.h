@@ -64,6 +64,25 @@ struct {
     __type(value, struct execve_event);    // This struct hold the all execve event data temporary
 }tmp_execve_map SEC(".maps");
 
+/****************************************
+*************** Array Maps **************
+*****************************************/
+
+/*
+*   This map is used for generate context id(CID). 
+*   Benifits:
+*       - Always exists (index 0)
+*       - Fast Lookup
+*       - Verifier Safe
+*       - Works Everywhere
+*   Because the atomic counter is not reliable. limited support depending on the kernel. {BPF_ATOMIC64}
+*/
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __uint(max_entries, 1); // For this stage, we need only one counter.
+    __type(key, __u32); // key = 0, because we have only one entry
+    __type(value, __u64); // Context id(CID)
+} cid_counter SEC(".maps");
 
 /*******************************
 ****** Streaming Maps **********
