@@ -95,6 +95,57 @@ static __always_inline __u64 get_cid(void){
 }
 
 /*
+*   This helper is used for get the cid value.
+*   Benefits:
+*       - check cid
+*       - generate cid
+*       - store cid
+*   Arguments:
+*       - pid(tgid)
+*   Return:
+*       - context id(__u64), valid cid always > 0
+*   Stack Allocation: 16 bytes
+*/
+static __always_inline __u64 get_or_create_cid(__u32 pid){
+    /*
+    *   For hold context hash map return pointer
+    *   8 bytes of stack allocation
+    */
+    __u64 *cid_ptr;
+
+    /*
+    *   For hold newly created context id
+    *   8 bytes of stack allocation
+    */
+    __u64 cid;
+
+    // Get the context ID if it's already stored.
+    cid_ptr = bpf_map_lookup_elem(&ctx_map, &pid);
+    if(cid_ptr) return *cid_ptr;    // return the cid value. Not the pointer.
+
+    // generate a new cid.
+    cid = get_cid();
+    if(cid == 0) return 0;
+
+    /*
+    *   Store generated CID, and used direct update because we already checked if it is stored or not. 
+    *   So there wasn't a point in using the `update_map_element` helper function.
+    *
+    *   Developer Note:
+    *       - Used `BPF_NOEXIST` for prevent race condition.
+    *   ex: 
+    *       Two threads could do:
+    *           Thread A -> no CID -> create CID 5
+    *           Thread B -> no CID -> create CID 6
+    *       and both assign different CID's to same PID. 
+    *       
+    */
+    if(bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_ANY)!= 0) return 0;
+
+    return cid;
+}
+
+/*
 *   This function use for check map data availability
 *   Arguments:
 *       1. map
