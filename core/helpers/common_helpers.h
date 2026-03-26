@@ -64,6 +64,37 @@ static __always_inline __u32 get_ppid(void){
 }
 
 /*
+*   This helper use for get Context id. 
+*   0 Arguments
+*   Return:
+*       - context id(__u64) and always valid CID > 0 
+*   Stack Allocation: 16 bytes;
+*   Atomic builtin function documentation:
+*       - https://docs.ebpf.io/linux/concepts/concurrency/
+*/
+static __always_inline __u64 get_cid(void){
+    /*
+    *   We have only one etries and it key is 0.
+    *   4 bytes of stack allocation.
+    */
+    __u32 key = 0 ;
+
+    /*
+    *   Get and assign the value of the cid_counter array map to a pointer.
+    *   8 bytes of stack allocation
+    */
+    __u64 *counter = bpf_map_lookup_elem(&cid_counter, &key);
+    if(!counter){
+        // We can't return -1 because this function returns an unsigned integer. So if you try to return -1, it will return a huge positive number.
+        return 0; // failure
+    }
+
+    // atomic: returns old value, then increments counter by 1.
+    return __sync_fetch_and_add(counter, 1);
+
+}
+
+/*
 *   This function use for check map data availability
 *   Arguments:
 *       1. map
