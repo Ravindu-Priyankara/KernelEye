@@ -77,7 +77,7 @@ struct {
     __uint(max_entries, HASHMAP_SIZE);
     __type(key, __u64);     // key is the context id
     __type(value, struct ke_ctx_state);
-} crx_state_map SEC(".maps");
+} ctx_state_map SEC(".maps");
 
 /****************************************
 *********** Per CPU Array Maps **********

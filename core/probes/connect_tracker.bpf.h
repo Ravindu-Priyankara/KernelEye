@@ -64,10 +64,6 @@
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
 * Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
-* If IPV4:
-*   1. Stack Allocation: 120 bytes
-* If IPV6
-*   1. Stack Allocation: 136 bytes
 */
 SEC("tracepoint/syscalls/sys_enter_connect")
 int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -82,6 +78,12 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     * Stack Allocation: 40 bytes
   */
   struct connect_event event = {};
+
+  /*
+  *   This struct used for check state already declared or not
+  *   Stack Allocation: 8 bytes
+  */
+  struct ke_ctx_state *ke_state;
 
   /*
     * This variable used for handle return values.
@@ -103,6 +105,12 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     * Stack Allocation: 8 bytes
   */
   __u64 net_ts;
+
+  /*
+  *  This variable used for hold context id
+  *   Stack Allocation : 8 bytes
+  */
+  __u64 cid;
 
   // Check that there was data of `struct sockaddr *uservaddr`
   if(!ctx->args[1]) return 0;
@@ -158,9 +166,47 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
   if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
 
+  /*
+  * This helper is used to get the context ID. And context ID is the key for storing our syscall flags inside the ke_ctx_state.
+  */
+  cid = get_or_create_cid(pid);
+  if(!cid) return 0;
+
   // Assign values to the connect event struct and later save it via the connect hash map.
   event.ppid = ppid;
   event.net_ts = net_ts;
+
+  // check already stored or not
+  ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+  if(!ke_state){
+    // first time seeing this project{zero initialized}
+    struct ke_ctx_state ke_new_state = {};
+
+    // assign the values
+    ke_new_state.flags |= CONNECT_FLAG;
+    ke_new_state.start_time = net_ts;
+
+    /*
+    *   No need to use the update map element helper. because we already checked this state.
+    *
+    *   Developer Note:
+    *       - Used `BPF_NOEXIST` for prevent race condition.
+    *       ex:
+    *           Thread A -> No ke_ctx_state -> create new state
+    *           Thread B -> No ke_ctx_state -> create new state
+    * 
+    *           Thread A -> Assign values to state -> Update the map
+    *           Thread B -> Assign values to state -> Update the map
+    *
+    *           So both threads will update, and the issue is timestamp will be overwritten with the last thread's timestamp.
+    */
+    if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
+
+  }else {
+    // already exists -> just update, not reset
+    ke_state->flags |= CONNECT_FLAG;
+    ke_state->start_time = net_ts;
+  }
 
   /*
   * Save the connect struct via connect hash map
