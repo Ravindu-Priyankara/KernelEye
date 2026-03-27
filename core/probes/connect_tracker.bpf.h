@@ -169,8 +169,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   /*
   * This helper is used to get the context ID. And context ID is the key for storing our syscall flags inside the ke_ctx_state.
   */
-  cid = get_or_create_cid(pid);
-  if(!cid) return 0;
+  if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
 
   // Assign values to the connect event struct and later save it via the connect hash map.
   event.ppid = ppid;
