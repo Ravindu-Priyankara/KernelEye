@@ -92,7 +92,7 @@ struct dup2_state{
 *   Defined in:
 *       - common/common_syscalls.h
 */
-struct ctx_state{
+struct ke_ctx_state{
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
     __u64 start_time; // for cleanup{timeout}
 };
