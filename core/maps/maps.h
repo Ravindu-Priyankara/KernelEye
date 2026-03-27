@@ -66,6 +66,19 @@ struct {
     __type(value, __u64); // context id(CID)
 } ctx_map SEC(".maps");
 
+/*
+*   This map is used to hold triggered syscall flags. And the key is context ID, not the thread group ID.
+*   Benifits:
+*       - This struct holds the parent and child-triggered syscall flags.
+*       - Prevent the fork based bypasses.
+*/
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, HASHMAP_SIZE);
+    __type(key, __u64);     // key is the context id
+    __type(value, struct ctx_state);
+} crx_state_map SEC(".maps");
+
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
