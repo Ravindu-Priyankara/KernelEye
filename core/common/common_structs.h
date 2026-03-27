@@ -65,23 +65,32 @@ struct dup2_state{
 };
 
 /*
-*   This struct use for hold flags.
-*   Total byte count is 16 bytes
-*   Bitmask Flags Architecture
-*   ==============================================
-*   | Flag         | Binary        | Meaning     |
-*   ==============================================
-*   CONNECT         0001            Connect seen |
-*   EXECVE          0010            Execve seen  |
-*   DUP2            0100            Dup2 seen    |
-*   ==============================================
+*   This struct use for tracking triggered syscalls flags
+*
+*   Memory Layout:
+*       - Total byte count is 16 bytes
+*
+*   Bitmask Flags Architecture:
+*   ==================================================|
+*   | Flag             | Binary        | Meaning      |
+*   ==================================================|
+*   CONNECT_FLAG         0001            Connect seen |
+*   EXECVE_FLAG          0010            Execve seen  |
+*   DUP2_FLAG            0100            Dup2 seen    |
+*   ==================================================|
+*
+*   Design Notes:
+*       - Multiple flags can be set simultaneously
+*       - Order-independent detection (behavior correlation)
+*       - Used as a lightweight state machine
+*
+*   Usage:
+*       - Add flag = ctx->flags |= CONNECT_FLAG
+*       - Remove Flag = ctx->flags &= ~CONNECT_FLAG
+*       - Check Flag = if(ctx->flags & CONNECT_FLAG){ connect already happen } 
+*
 *   Defined in:
 *       - common/common_syscalls.h
-*
-*   Developer Note:
-*       - Add flag = ctx->flags |= CONNECT
-*       - Remove Flag = ctx->flags &= ~CONNECT
-*       - Check Flag = if(ctx->flags & CONNECT){ connect already happen } 
 */
 struct ctx_state{
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
