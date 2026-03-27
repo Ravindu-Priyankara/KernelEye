@@ -63,6 +63,30 @@ struct dup2_state{
     __u8 stdio_redirects; // count of redirects
     // 3 bytes of padding
 };
+
+/*
+*   This struct use for hold flags.
+*   Total byte count is 16 bytes
+*   Bitmask Flags Architecture
+*   ==============================================
+*   | Flag         | Binary        | Meaning     |
+*   ==============================================
+*   CONNECT         0001            Connect seen |
+*   EXECVE          0010            Execve seen  |
+*   DUP2            0100            Dup2 seen    |
+*   ==============================================
+*   Defined in:
+*       - common/common_syscalls.h
+*
+*   Developer Note:
+*       - Add flag = ctx->flags |= CONNECT
+*       - Remove Flag = ctx->flags &= ~CONNECT
+*       - Check Flag = if(ctx->flags & CONNECT){ connect already happen } 
+*/
+struct ctx_state{
+    __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
+    __u64 start_time; // for cleanup{timeout}
+};
 /*************************************
 ******** Common Event Header *********
 *************************************/
