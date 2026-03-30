@@ -14,7 +14,7 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 104 bytes
+*    Result : Maximum stack depth = 112 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
@@ -22,15 +22,15 @@
 * │
 * │  r10 -0           : scratch / temporary usage
 * │
-* │  r10 -8           : struct sockaddr_in6 sin6_port
+* │  r10 -8           : tail of struct (includes port/flowinfo parts)
 * │  r10 -16          : struct sockaddr_in6 sin6_addr part
-* │  r10 -24          : struct sockaddr_in6 sin6_addr part / struct sockaddr_in sin
-* │  r10 -32          : struct sockaddr_in6 / struct sockaddr_in overlap / parent ptr temp
+* │  r10 -24          : struct sockaddr_in6 sin6_addr part / struct sockaddr_in sin/ struct ke_ctx_state ke_new_state.start_time
+* │  r10 -32          : start of sockaddr_in6 / parent ptr temp / cid / struct ke_ctx_state ke_new_state.flags
 * │  r10 -36          : __u32 ppid temporary
 * │  r10 -48          : struct sockaddr sa
 * │  r10 -56          : struct sockaddr sa (rest)
 * │  r10 -60          : event->addr.port (ipv4/ipv6)
-* │  r10 -64          : struct connect_event event (ipv6 part)
+* │  r10 -64          : event.addr.ipv6 / ipv4
 * │  r10 -68          : connect_event event (ipv6 part)
 * │  r10 -72          : connect_event event (ipv4/ipv6 part)
 * │  r10 -76          : connect_event event (ipv4 part)
@@ -38,12 +38,15 @@
 * │  r10 -88          : event->net_ts
 * │  r10 -96          : event->ppid
 * │  r10 -100         : pid / general temporary storage
+* |  r10 -112         : ppid temporary/ key {cid_counter key}
 * │
-* Total stack used: 104 bytes
+* Total stack used: 112 bytes
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
-*  - sin and sin6 overlap in memory since their lifetimes don't conflict
+*  - sin and sin6 reuse the same stack region (-32 area)
+*  - safe because verifier sees mutually exclusive branches (family check)
+*  - NOT classic lifetime-based reuse, but branch-isolated reuse
 *  - All u64 writes are 8-byte aligned, verifier-friendly
 *  - For larger structs, consider BPF maps instead of stack
 *  - Helps debugging, verifier checks, and future maintenance
@@ -53,10 +56,10 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 143 instructions
+*    Result: 217 instructions
 *
 *  Byte Size:
-*    xlated 1144B  (1144 / 8 = 143 instructions)
+*    xlated 1736B  (1736 / 8 = 217 instructions)
 * ===========================================================
 */
 
