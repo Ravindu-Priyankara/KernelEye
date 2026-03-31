@@ -129,8 +129,8 @@ int dup2_enter_handler(
         struct ke_ctx_state ke_new_state = {};
 
         // assign the values
-        ke_new_state.flags |= CONNECT_FLAG;
-        ke_new_state.start_time = net_ts;
+        ke_new_state.flags |= DUP2_FLAG;
+        ke_new_state.start_time = dup2_ts;
 
         /*
         *   No need to use the update map element helper. because we already checked this state.
@@ -150,8 +150,8 @@ int dup2_enter_handler(
 
     }else {
         // already exists -> just update, not reset
-        ke_state->flags |= CONNECT_FLAG;
-        ke_state->start_time = net_ts;
+        ke_state->flags |= DUP2_FLAG;
+        ke_state->start_time = dup2_ts;
     }
 
     // This helps to prevent always create new struct with zero initialized. Because we need increase existing redirectors.
