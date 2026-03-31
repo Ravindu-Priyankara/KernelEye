@@ -79,10 +79,22 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     struct execve_event *tmp_event;
 
     /*
+    *   This struct used for check state already declared or not
+    *   Stack Allocation: 8 bytes
+    */
+    struct ke_ctx_state *ke_state;
+
+    /*
     *   This variable use for error handling.
     *   Stack Allocation: 4 bytes
     */
     int ret;
+
+    /*
+    *  This variable used for hold context id
+    *   Stack Allocation : 8 bytes
+    */
+    __u64 cid;
 
 
     /*
@@ -122,6 +134,43 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     // assign values{ppid, execution time}
     tmp_event->ppid = ppid;
     tmp_event->execve_ts = execve_ts;
+
+    /*
+    * This helper is used to get the context ID. And context ID is the key for storing our syscall flags inside the ke_ctx_state.
+    */
+    if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
+
+    // check already stored or not
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    if(!ke_state){
+        // first time seeing this project{zero initialized}
+        struct ke_ctx_state ke_new_state = {};
+
+        // assign the values
+        ke_new_state.flags |= EXECVE_FLAG;
+        ke_new_state.start_time = execve_ts;
+
+        /*
+        *   No need to use the update map element helper. because we already checked this state.
+        *
+        *   Developer Note:
+        *       - Used `BPF_NOEXIST` for prevent race condition.
+        *       ex:
+        *           Thread A -> No ke_ctx_state -> create new state
+        *           Thread B -> No ke_ctx_state -> create new state
+        * 
+        *           Thread A -> Assign values to state -> Update the map
+        *           Thread B -> Assign values to state -> Update the map
+        *
+        *           So both threads will update, and the issue is timestamp will be overwritten with the last thread's timestamp.
+        */
+        if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
+
+    }else {
+        // already exists -> just update, not reset
+        ke_state->flags |= EXECVE_FLAG;
+        ke_state->start_time = execve_ts;
+    }
 
     // Copy scratchpad -> HASH map (persistent storage)
     if(force_update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
