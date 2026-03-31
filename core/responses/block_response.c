@@ -8,7 +8,12 @@ int block_execute(
     struct ke_event_header *event
 )
 {
-    kill(event->pid, SIGTERM);
+    /*
+    *   For protect system process.
+    */
+    if(event->pid > 100){
+        kill(event->pid, SIGTERM);
+    }
     //printf("[KernelEye BLOCK] Malicious process killed!\n");
     //TODO: show more details {pid , ..}
     return 0;
