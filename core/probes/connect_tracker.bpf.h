@@ -66,7 +66,7 @@
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
-* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
+* Argument info: sudo cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
 */
 SEC("tracepoint/syscalls/sys_enter_connect")
 int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -177,38 +177,46 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // Assign values to the connect event struct and later save it via the connect hash map.
   event.ppid = ppid;
   event.net_ts = net_ts;
+  event.fd = ctx->args[0];
 
-  // check already stored or not
+  // read values from map
   ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
   if(!ke_state){
     // first time seeing this project{zero initialized}
     struct ke_ctx_state ke_new_state = {};
 
-    // assign the values
+    /*
+    * Assign the flags and start time.
+    * Flags-
+    *   - for track triggered syscall patterns
+    * Start time:
+    *   - for timeout and clear the map data.
+    */
     ke_new_state.flags |= CONNECT_FLAG;
     ke_new_state.start_time = net_ts;
 
-    /*
-    *   No need to use the update map element helper. because we already checked this state.
-    *
-    *   Developer Note:
-    *       - Used `BPF_NOEXIST` for prevent race condition.
-    *       ex:
-    *           Thread A -> No ke_ctx_state -> create new state
-    *           Thread B -> No ke_ctx_state -> create new state
-    * 
-    *           Thread A -> Assign values to state -> Update the map
-    *           Thread B -> Assign values to state -> Update the map
-    *
-    *           So both threads will update, and the issue is timestamp will be overwritten with the last thread's timestamp.
-    */
-    if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
+    __builtin_memcpy(&ke_new_state.conn, &event, sizeof(event));
 
-  }else {
-    // already exists -> just update, not reset
+    ke_new_state.has_conn = 1;
+
+    bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST);
+
+  }else{
+    /*
+    * Assumption:
+    *   - Attacker can fake connect first and real one later.
+    */
     ke_state->flags |= CONNECT_FLAG;
     ke_state->start_time = net_ts;
+
+    if(event.net_ts > ke_state->conn.net_ts){
+      __builtin_memcpy(ke_state->conn, &event, sizeof(event));
+    }
+
+    ke_state->has_conn = 1;
+
   }
+
 
   /*
   * Save the connect struct via connect hash map
