@@ -42,7 +42,9 @@ struct ke_sockaddr {
 // This struct use for tracking connect events with hashmap
 // Total byte count is 40 bytes
 struct connect_event{
+    __u8 fd;    // for track fd
     __u32 ppid; // parent process id 
+    // 3 bytes of padding
     __u64 net_ts;   // timestamp 
     struct ke_sockaddr addr;    // used for support few socket families
 };
@@ -61,7 +63,8 @@ struct dup2_state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __u8 stdio_redirects; // count of redirects
-    // 3 bytes of padding
+    __u8 oldfd; // for check connect fd == dup2 old fd
+    // 2 bytes of padding
 };
 
 /*
@@ -91,10 +94,28 @@ struct dup2_state{
 *
 *   Defined in:
 *       - common/common_syscalls.h
+*
+*   Total byte count is 344 bytes
 */
 struct ke_ctx_state{
-    __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
     __u64 start_time; // for cleanup{timeout}
+    struct connect_event conn;  // for hold connect syscall data
+    struct dup2_state dup2; // for hold dup2 syscall data
+    struct execve_event exec; // for hols execve syscall data
+    __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
+
+    // for check data availability
+    __u8 has_conn;
+    __u8 has_dup2;
+    __u8 has_exec;
+    /*
+    *   Used for check connect fd == dup2 old fd.
+    *   This kills most bypasses
+    *       Now attacker must:
+    *           - use same FD
+    *           - cannot fake unrelated connect
+    */
+    __u8 dup2_valid;    
 };
 /*************************************
 ******** Common Event Header *********
