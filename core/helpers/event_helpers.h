@@ -33,6 +33,37 @@ static __always_inline int is_reverse_shell(__u32 pid){
 }
 
 /*
+* 
+*/
+static __always_inline int identify_the_suspicious_event(__u64 cid){
+    /*
+    *   For extract the flag information
+    *   Stack Allocation: 8 bytes
+    */
+    struct ke_ctx_state *state;
+
+    /*
+    *    Can return NULL. So, a null check is mandatory.
+    */
+    state = check_map_data_availability(&ctx_state_map, &cid);
+    if(!state) return 0;
+
+    /*
+    *   For optimization:
+    *       - This avoids recomputing mask
+    */
+    __u32 required = CONNECT_FLAG | DUP2_FLAG | EXECVE_FLAG;
+    /*
+    *   Check the flags to identify the suspicious process.
+    *   Detection:
+    *       - reverse shell pattern
+    */
+    if((state->flags & (required)) == (required)) return 1;
+
+    return 0;
+}
+
+/*
 *   This helper is used to detect reverse shell-type events and pass that data to the streaming map.
 *   Arguments :  process id
 *   Return : success or fail
