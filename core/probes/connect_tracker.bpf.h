@@ -210,7 +210,15 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     ke_state->start_time = net_ts;
 
     if(event.net_ts > ke_state->conn.net_ts){
-      __builtin_memcpy(ke_state->conn, &event, sizeof(event));
+      /*
+      * BUG NOTE:
+      *   - passing 'struct connect_event' to parameter of incompatible type 'void *'
+      *   Reason:
+      *     - ke_state is a pointer but ke_state->conn is not pointer because it just pointer to struct only.
+      *   Fix:
+      *     - address of ke_state->conn so it gave valid address for copy data{&ke_state->conn}
+      */
+      __builtin_memcpy(&ke_state->conn, &event, sizeof(event));
     }
 
     ke_state->has_conn = 1;
