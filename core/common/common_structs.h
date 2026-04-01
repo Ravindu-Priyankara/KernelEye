@@ -58,13 +58,13 @@ struct execve_event{
 };
 
 // This struct use for tracking dup2 state with hashmap
-// Total byte count is 16 bytes
+// Total byte count is 24 bytes
 struct dup2_state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
-    __u8 stdio_redirects; // count of redirects
     __s32 oldfd; // for check connect fd == dup2 old fd
-    // 2 bytes of padding
+    __u8 stdio_redirects; // count of redirects
+    // 7 bytes of padding
 };
 
 /*
@@ -222,7 +222,7 @@ _Static_assert(sizeof(struct ke_sockaddr) == 24,"ke_sockaddr size mismatch");
 _Static_assert(offsetof(struct ke_sockaddr, port) == 20,"port offset changed");
 
 // dup2_state must remain 16 bytes
-_Static_assert(sizeof(struct dup2_state) == 16, "dup2_state size mismatch");
+_Static_assert(sizeof(struct dup2_state) == 24, "dup2_state size mismatch");
 
 // Protect header types reordering
 _Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
