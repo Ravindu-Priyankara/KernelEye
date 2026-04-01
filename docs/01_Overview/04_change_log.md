@@ -5,6 +5,12 @@ All notable changes to Kernel Eye are documented in this file.
 The format is inspired by Keep a Changelog and follows semantic versioning principles.
 
 ---
+## [v1.1.0] - Initial Release (2026-03-25)
+### Added
+
+- context ID-based tracking to prevent parent + child bypasses.
+- Improve map ABI correctness.
+- Remove unsafe kill and implement the logic for safely terminating the process(for kill pid should be > 100).
 
 ## [v1.0.0] - Initial Release (2026-03-25)
 

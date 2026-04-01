@@ -177,7 +177,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // Assign values to the connect event struct and later save it via the connect hash map.
   event.ppid = ppid;
   event.net_ts = net_ts;
-  event.fd = ctx->args[0];
+  event.fd = (__s32)ctx->args[0]; // cast to signed 32 bit.
 
   // read values from map
   ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);

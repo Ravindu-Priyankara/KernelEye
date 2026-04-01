@@ -42,7 +42,7 @@ struct ke_sockaddr {
 // This struct use for tracking connect events with hashmap
 // Total byte count is 40 bytes
 struct connect_event{
-    __u8 fd;    // for track fd
+    __s32 fd;    // for track fd{signed}
     __u32 ppid; // parent process id 
     // 3 bytes of padding
     __u64 net_ts;   // timestamp 
@@ -63,7 +63,7 @@ struct dup2_state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __u8 stdio_redirects; // count of redirects
-    __u8 oldfd; // for check connect fd == dup2 old fd
+    __s32 oldfd; // for check connect fd == dup2 old fd
     // 2 bytes of padding
 };
 

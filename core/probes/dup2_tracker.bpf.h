@@ -91,8 +91,10 @@ int dup2_enter_handler(
     /*
     * This variable use for hold file descriptor;
     * Stack Allocation: 4 bytes
+    * ABI NOTE:
+    *   - For ABI correctness, this should be signed.
     */
-    __u32 fd_new;
+    __s32 fd_new; 
 
     /*
     *  This variable used for hold context id
@@ -107,11 +109,12 @@ int dup2_enter_handler(
     pid = get_tgid();
     ppid = get_ppid();
     dup2_ts = get_trigger_time(); // capture the timestamp
-    fd_new = (__u32)ctx->args[1];   // casting is important because it return __u64
+    fd_new = (__s32)ctx->args[1];   // casting is important because it return __u64
 
 
-    // Only track stdin/out/err, and there were no negative file descriptors.
-    if(fd_new > 2) return 0;
+    // Only track stdin/out/err, Negative FDs are ignored for safety.
+    // After converting to signed, we should also check negative cases.
+    if(fd_new > 2 || fd_new < 0) return 0;
 
     //sanitize the data
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
