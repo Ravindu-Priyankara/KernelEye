@@ -95,7 +95,7 @@ struct dup2_state{
 *   Defined in:
 *       - common/common_syscalls.h
 *
-*   Total byte count is 344 bytes
+*   Total byte count is 352 bytes
 */
 struct ke_ctx_state{
     __u64 start_time; // for cleanup{timeout}

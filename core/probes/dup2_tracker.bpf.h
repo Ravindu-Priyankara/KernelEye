@@ -53,12 +53,6 @@ int dup2_enter_handler(
 )
 {
     /*
-    *   This struct use for hold our dup2 data
-    *   Stack Allocation: 8 bytes
-    */
-    struct dup2_state *event;
-
-    /*
     *   This struct used for check state already declared or not
     *   Stack Allocation: 8 bytes
     */
@@ -97,8 +91,17 @@ int dup2_enter_handler(
     __s32 fd_new; 
 
     /*
+    * For hold old fd.
+    * value of old fd:
+    *   - can check connect fd is equal to dup2 old fd.
+    *   - That helps to prevent fake connect syscalls-based bypass.
+    * Stack Allocation: 4 bytes
+    */
+    __s32 old_fd;
+
+    /*
     *  This variable used for hold context id
-    *   Stack Allocation : 8 bytes
+    *  Stack Allocation : 8 bytes
     */
     __u64 cid;
 
@@ -110,6 +113,7 @@ int dup2_enter_handler(
     ppid = get_ppid();
     dup2_ts = get_trigger_time(); // capture the timestamp
     fd_new = (__s32)ctx->args[1];   // casting is important because it return __u64
+    old_fd = (__s32)ctx->args[0];
 
 
     // Only track stdin/out/err, Negative FDs are ignored for safety.
@@ -125,56 +129,77 @@ int dup2_enter_handler(
     */
     if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
 
-    // check already stored or not
     ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
-    if(!ke_state){
-        // first time seeing this project{zero initialized}
+    /*
+    *   If there was a valid ke_ctx_state, we used that for data insertion.
+    */
+    if(ke_state){
+        // check the dup2 data inserted
+        if(ke_state->has_dup2){
+            /*
+            * Split increment into explicit read-modify-write.
+            *
+            * Helps verifier in complex control flows where direct
+            * ++ on map value fields may trigger rejection.
+            *
+            * Slightly increases stack usage but improves verifier stability.
+            */
+            __u8 count = ke_state->dup2.stdio_redirects;
+            count++;
+            ke_state->dup2.stdio_redirects = count;
+
+            ke_state->dup2.last_dup2_ts = dup2_ts;
+            /*
+            *   setup the dup 2 valid flag
+            *   Assumption:
+            *       - If connect fd and dup2 old fd are equal, it helps to remove false positive events.
+            */
+            if(ke_state->has_conn && !ke_state->dup2_valid){
+                if(old_fd == ke_state->conn.fd){
+                    ke_state->dup2_valid = 1;
+                }
+            }
+        /*
+        *   No valid dup2 data, so it means the first time of the dup2 syscall was seen for this process.
+        */
+        }else{
+            ke_state->dup2.last_dup2_ts = dup2_ts;
+            ke_state->dup2.ppid = ppid;
+            ke_state->dup2.stdio_redirects = 1;
+            ke_state->has_dup2 = 1;
+            ke_state->flags |= DUP2_FLAG;
+            ke_state->start_time = dup2_ts;
+            /*
+            *   setup the dup 2 valid flag
+            *   Assumption:
+            *       - If connect fd and dup2 old fd are equal, it helps to remove false positive events.
+            */
+            if(ke_state->has_conn && !ke_state->dup2_valid){
+                if(old_fd == ke_state->conn.fd) ke_state->dup2_valid = 1;
+            }
+
+        }
+    /*
+    * No valid ke_ctx_state, so it means the first time of this process context data storing.
+    */
+    }else{
         struct ke_ctx_state ke_new_state = {};
 
-        // assign the values
-        ke_new_state.flags |= DUP2_FLAG;
         ke_new_state.start_time = dup2_ts;
+        ke_new_state.flags |= DUP2_FLAG;
+        ke_new_state.has_dup2 = 1;
+        
+        //dup2 state data and removed event temp struct because this method reduces stack pressure.
+        ke_new_state.dup2.last_dup2_ts = dup2_ts;
+        ke_new_state.dup2.ppid = ppid;
+        ke_new_state.dup2.stdio_redirects = 1;
 
-        /*
-        *   No need to use the update map element helper. because we already checked this state.
-        *
-        *   Developer Note:
-        *       - Used `BPF_NOEXIST` for prevent race condition.
-        *       ex:
-        *           Thread A -> No ke_ctx_state -> create new state
-        *           Thread B -> No ke_ctx_state -> create new state
-        * 
-        *           Thread A -> Assign values to state -> Update the map
-        *           Thread B -> Assign values to state -> Update the map
-        *
-        *           So both threads will update, and the issue is timestamp will be overwritten with the last thread's timestamp.
-        */
-        if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
+        #ifdef DEBUG_MODE
+            ke_state->dup2.oldfd = old_fd;
+        #endif
 
-    }else {
-        // already exists -> just update, not reset
-        ke_state->flags |= DUP2_FLAG;
-        ke_state->start_time = dup2_ts;
-    }
+        if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != ERR_SUCCESS) return 0;
 
-    // This helps to prevent always create new struct with zero initialized. Because we need increase existing redirectors.
-    event = check_map_data_availability(&dup2_map, &pid);
-    if(event){
-        // rewrite the values if data exists
-        event->last_dup2_ts = dup2_ts;
-        event->stdio_redirects++;   // for a reverse shell, we strictly check file descriptor >= 2.
-    }else{
-        /*
-        *   This struct use for hold our dup2 data
-        *   Stack Allocation: 16 bytes
-        */
-        struct dup2_state new_state = {};
-        new_state.last_dup2_ts = dup2_ts;
-        new_state.ppid = ppid;
-        new_state.stdio_redirects = 1;
-
-        ret = update_map_element(&dup2_map, &pid, &new_state, BPF_ANY); // save dup2 event on dup2 map
-        if(ret != ERR_SUCCESS) return ERR_SUCCESS;
     }
 
     // for debugging

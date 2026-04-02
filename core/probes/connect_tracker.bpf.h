@@ -199,7 +199,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
     ke_new_state.has_conn = 1;
 
-    bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST);
+    if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
 
   }else{
     /*
