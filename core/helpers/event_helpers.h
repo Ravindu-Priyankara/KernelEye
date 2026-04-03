@@ -43,10 +43,22 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     struct ke_ctx_state *state;
 
     /*
+    *   for check redirect counts
+    *   Stack Allocation: 8 bytes
+    */
+    struct dup2_state *dup2_state;
+
+    /*
     *    Can return NULL. So, a null check is mandatory.
     */
     state = check_map_data_availability(&ctx_state_map, &cid);
     if(!state) return 0;
+
+    /*
+    *   get the dup2 events
+    */
+    dup2_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    if(!dup2_state) return 0;
 
     /*
     *   For optimization:
@@ -58,7 +70,9 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     *   Detection:
     *       - reverse shell pattern
     */
-    if((state->flags & (required)) == (required)) return 1;
+    if((state->flags & (required)) == (required)){
+        return dup2_state->stdio_redirects >= 2; // some payloads skip stderr thats why i choose 2 rather than strictly depend on 3
+    }
 
     return 0;
 }
@@ -69,11 +83,8 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
 *   Return : success or fail
 *   Stack Allocation : 24 bytes
 */
-static __always_inline int ke_reverse_shell_type_event(__u32 pid){
-    //prevent null values
-    if(validate_not_null_u32(pid) != ERR_SUCCESS) return ERR_FAILURE;
-
-    //sanitize the pid
+static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
+    if(!cid) return ERR_FAILURE;
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_FAILURE;
 
     // for extract given pid has connect events.
@@ -93,15 +104,15 @@ static __always_inline int ke_reverse_shell_type_event(__u32 pid){
     struct ke_suspicious_event *r_event;
 
     // extract the connect data
-    conn_event = check_map_data_availability(&connect_map, &pid);
+    conn_event = check_map_data_availability(&connect_map, &cid);
     if(!conn_event) return ERR_FAILURE;
 
     // extract the execve data
-    exe_event = check_map_data_availability(&execve_hash_map, &pid);
+    exe_event = check_map_data_availability(&execve_hash_map, &cid);
     if(!exe_event) return ERR_FAILURE;
 
     // extract the dup2 data
-    dup2_state = check_map_data_availability(&dup2_map, &pid);
+    dup2_state = check_map_data_availability(&dup2_map, &cid);
     if(!dup2_state) return ERR_FAILURE;
 
     // reserve a space

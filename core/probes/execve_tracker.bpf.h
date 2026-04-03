@@ -160,15 +160,16 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     /*
     * check is that reverse shell
     * conditions:
-    *   - connect syscalls should be triggered
+    *   - connect, dup2, execve syscalls should be triggered
     *   - dup2 should be triggered and it must have descripter count 2 or higher {stdin/out/err}
     */
-    if(!is_reverse_shell(pid)){
+    /*if(!is_reverse_shell(pid)){
         return 0;
-    }
+    }*/
+    if(identify_the_suspicious_event(cid)) return 0;
     
     // pass data to userland via ring buffer
-    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
+    if(ke_reverse_shell_type_event(cid, pid) != ERR_SUCCESS) return 0;
 
     // for debugging
     #ifdef DEBUG_MODE
