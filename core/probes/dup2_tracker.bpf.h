@@ -148,7 +148,6 @@ int dup2_enter_handler(
     // update the map
     ke_state->start_time = dup2_ts;
     ke_state->flags |= DUP2_FLAG;
-    if(!ke_state->has_dup2) ke_state->has_dup2 = 1;
 
     // check dup2 map data availability
     dup2_state = bpf_map_lookup_elem(&dup2_map, &pid);
@@ -157,8 +156,8 @@ int dup2_enter_handler(
         struct dup2_state new_dup2_state = {};
         // for counter redirects
         new_dup2_state.stdio_redirects = 1;
-        bpf_map_update_elem(&dup2_map, &pid, &new_dup2_state, BPF_NOEXIST);
-        dup2_state = bpf_map_lookup_elem(&dup2_map, &pid);
+        bpf_map_update_elem(&dup2_map, &cid, &new_dup2_state, BPF_NOEXIST);
+        dup2_state = bpf_map_lookup_elem(&dup2_map, &cid);
         if(!dup2_state) return 0;
     }
 

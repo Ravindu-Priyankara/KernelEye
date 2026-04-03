@@ -32,7 +32,7 @@
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
-    __type(key, __u32); // key = pid
+    __type(key, __u64); // key = cid
     __type(value, struct connect_event);   // This struct hold the all connect events data
 }connect_map SEC(".maps");  // hashmap name
 
@@ -40,7 +40,7 @@ struct {
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);   // map type
     __uint(max_entries, HASHMAP_SIZE); // hashmap size
-    __type(key, __u32); // pid
+    __type(key, __u64); // cid
     __type(value, struct execve_event); // struct for hold data
 } execve_hash_map SEC(".maps");
 
@@ -48,7 +48,7 @@ struct {
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);    // map type
     __uint(max_entries, HASHMAP_SIZE); // hashmap maximum entries
-    __type(key, __u32); // pid
+    __type(key, __u64); // cid
     __type(value, struct dup2_state); // This struct hold the all dup2 events
 } dup2_map SEC(".maps"); // hashmap name
 

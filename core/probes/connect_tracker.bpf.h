@@ -200,7 +200,6 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   */
   ke_state->flags |= CONNECT_FLAG;
   ke_state->start_time = net_ts;
-  ke_state->has_conn = 1;
 
   /*
   * Save the connect struct via connect hash map
@@ -209,7 +208,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   * Developer Note:
   *   - If the same program triggers this syscall twice, it will not update the data. So if we need to fix that, switch to the force_update helper function.
   */
-  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY);
+  ret = update_map_element(&connect_map, &cid, &event, BPF_ANY);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging

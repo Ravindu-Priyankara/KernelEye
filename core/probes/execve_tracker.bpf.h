@@ -153,10 +153,9 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     // update the values
     ke_state->start_time = execve_ts;
     ke_state->flags |= EXECVE_FLAG;
-    ke_state->has_exec = 1;
 
     // Copy scratchpad -> HASH map (persistent storage)
-    if(force_update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
+    if(force_update_map_element(&execve_hash_map, &cid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
     /*
     * check is that reverse shell

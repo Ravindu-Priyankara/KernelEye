@@ -100,12 +100,7 @@ struct dup2_state{
 struct ke_ctx_state{
     __u64 start_time; // for cleanup{timeout}
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-
-    // for check data availability
-    __u8 has_conn;
-    __u8 has_dup2;
-    __u8 has_exec;
-    // 1 byte of padding   
+    // 4 byte of padding   
 };
 /*************************************
 ******** Common Event Header *********
