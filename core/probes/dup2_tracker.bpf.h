@@ -58,6 +58,12 @@ int dup2_enter_handler(
     */
     struct ke_ctx_state *ke_state;
 
+    /*
+    *   For hold dup2 data
+    *   Stack Allocation: 8 bytes
+    */
+    struct dup2_state *dup2_state;
+
     /* 
     * This variable used for hols tgid.
     * Stack Allocation: 4 bytes
@@ -130,77 +136,36 @@ int dup2_enter_handler(
     if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
 
     ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
-    /*
-    *   If there was a valid ke_ctx_state, we used that for data insertion.
-    */
-    if(ke_state){
-        // check the dup2 data inserted
-        if(ke_state->has_dup2){
-            /*
-            * Split increment into explicit read-modify-write.
-            *
-            * Helps verifier in complex control flows where direct
-            * ++ on map value fields may trigger rejection.
-            *
-            * Slightly increases stack usage but improves verifier stability.
-            */
-            __u8 count = ke_state->dup2.stdio_redirects;
-            count++;
-            ke_state->dup2.stdio_redirects = count;
-
-            ke_state->dup2.last_dup2_ts = dup2_ts;
-            /*
-            *   setup the dup 2 valid flag
-            *   Assumption:
-            *       - If connect fd and dup2 old fd are equal, it helps to remove false positive events.
-            */
-            if(ke_state->has_conn && !ke_state->dup2_valid){
-                if(old_fd == ke_state->conn.fd){
-                    ke_state->dup2_valid = 1;
-                }
-            }
-        /*
-        *   No valid dup2 data, so it means the first time of the dup2 syscall was seen for this process.
-        */
-        }else{
-            ke_state->dup2.last_dup2_ts = dup2_ts;
-            ke_state->dup2.ppid = ppid;
-            ke_state->dup2.stdio_redirects = 1;
-            ke_state->has_dup2 = 1;
-            ke_state->flags |= DUP2_FLAG;
-            ke_state->start_time = dup2_ts;
-            /*
-            *   setup the dup 2 valid flag
-            *   Assumption:
-            *       - If connect fd and dup2 old fd are equal, it helps to remove false positive events.
-            */
-            if(ke_state->has_conn && !ke_state->dup2_valid){
-                if(old_fd == ke_state->conn.fd) ke_state->dup2_valid = 1;
-            }
-
-        }
-    /*
-    * No valid ke_ctx_state, so it means the first time of this process context data storing.
-    */
-    }else{
-        struct ke_ctx_state ke_new_state = {};
-
-        ke_new_state.start_time = dup2_ts;
-        ke_new_state.flags |= DUP2_FLAG;
-        ke_new_state.has_dup2 = 1;
-        
-        //dup2 state data and removed event temp struct because this method reduces stack pressure.
-        ke_new_state.dup2.last_dup2_ts = dup2_ts;
-        ke_new_state.dup2.ppid = ppid;
-        ke_new_state.dup2.stdio_redirects = 1;
-
-        #ifdef DEBUG_MODE
-            ke_state->dup2.oldfd = old_fd;
-        #endif
-
-        if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != ERR_SUCCESS) return 0;
-
+    if(!ke_state){
+        // make a copy and update it. 
+        // Stack Allocation : 16 bytes
+        struct ke_ctx_state zero = {};
+        bpf_map_update_elem(&ctx_state_map, &cid, &zero, BPF_NOEXIST);
+        ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+        if(!ke_state) return 0;
     }
+
+    // update the map
+    ke_state->start_time = dup2_ts;
+    ke_state->flags |= DUP2_FLAG;
+    if(!ke_state->has_dup2) ke_state->has_dup2 = 1;
+
+    // check dup2 map data availability
+    dup2_state = bpf_map_lookup_elem(&dup2_map, &pid);
+    if(!dup2_state){
+        // stack Allocation: 24 bytes
+        struct dup2_state new_dup2_state = {};
+        // for counter redirects
+        new_dup2_state.stdio_redirects = 1;
+        bpf_map_update_elem(&dup2_map, &pid, &new_dup2_state, BPF_NOEXIST);
+        dup2_state = bpf_map_lookup_elem(&dup2_map, &pid);
+        if(!dup2_state) return 0;
+    }
+
+    dup2_state->last_dup2_ts = dup2_ts;
+    dup2_state->ppid = ppid;
+    dup2_state->oldfd = old_fd;
+    dup2_state->stdio_redirects++;
 
     // for debugging
     #ifdef DEBUG_MODE

@@ -143,45 +143,17 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     // check already stored or not
     ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
     if(!ke_state){
-        // first time seeing this project{zero initialized}
-        // Stack Allocation: 352 bytes
-        struct ke_ctx_state ke_new_state = {};
-
-        // assign the values
-        ke_new_state.flags |= EXECVE_FLAG;
-        ke_new_state.start_time = execve_ts;
-
-        /*
-        *   We just removed old __builtin_memcpy. because we use a stable ABI and the same struct. So we can copy data without memcpy.
-        *   Benefits:
-        *       - reduce the verifier complexity.
-        */
-        ke_new_state.exec = *tmp_event;
-        ke_new_state.has_exec = 1;
-        /*
-        *   No need to use the update map element helper. because we already checked this state.
-        *
-        *   Developer Note:
-        *       - Used `BPF_NOEXIST` for prevent race condition.
-        *       ex:
-        *           Thread A -> No ke_ctx_state -> create new state
-        *           Thread B -> No ke_ctx_state -> create new state
-        * 
-        *           Thread A -> Assign values to state -> Update the map
-        *           Thread B -> Assign values to state -> Update the map
-        *
-        *           So both threads will update, and the issue is timestamp will be overwritten with the last thread's timestamp.
-        */
-        if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
-
-    }else {
-        // already exists -> just update, not reset
-        ke_state->flags |= EXECVE_FLAG;
-        ke_state->start_time = execve_ts;
-
-        ke_state->exec = *tmp_event;
-        if(!ke_state->has_exec) ke_state->has_exec = 1;
+        // Stack Allocation: 16 bytes
+        struct ke_ctx_state zero = {};
+        bpf_map_update_elem(&ctx_state_map, &cid, &zero, BPF_NOEXIST);
+        ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+        if(!ke_state) return 0;
     }
+
+    // update the values
+    ke_state->start_time = execve_ts;
+    ke_state->flags |= EXECVE_FLAG;
+    ke_state->has_exec = 1;
 
     // Copy scratchpad -> HASH map (persistent storage)
     if(force_update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;

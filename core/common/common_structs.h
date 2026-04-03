@@ -105,14 +105,7 @@ struct ke_ctx_state{
     __u8 has_conn;
     __u8 has_dup2;
     __u8 has_exec;
-    /*
-    *   Used for check connect fd == dup2 old fd.
-    *   This kills most bypasses
-    *       Now attacker must:
-    *           - use same FD
-    *           - cannot fake unrelated connect
-    */
-    __u8 dup2_valid;    
+    // 1 byte of padding   
 };
 /*************************************
 ******** Common Event Header *********
