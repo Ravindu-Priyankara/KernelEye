@@ -182,48 +182,38 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // read values from map
   ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
   if(!ke_state){
-    // first time seeing this project{zero initialized}
-    struct ke_ctx_state ke_new_state = {};
-
-    /*
-    * Assign the flags and start time.
-    * Flags-
-    *   - for track triggered syscall patterns
-    * Start time:
-    *   - for timeout and clear the map data.
-    */
-    ke_new_state.flags |= CONNECT_FLAG;
-    ke_new_state.start_time = net_ts;
-
-    __builtin_memcpy(&ke_new_state.conn, &event, sizeof(event));
-
-    ke_new_state.has_conn = 1;
-
-    if(bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST) != 0) return 0;
-
-  }else{
-    /*
-    * Assumption:
-    *   - Attacker can fake connect first and real one later.
-    */
-    ke_state->flags |= CONNECT_FLAG;
-    ke_state->start_time = net_ts;
-
-    if(event.net_ts > ke_state->conn.net_ts){
-      /*
-      * BUG NOTE:
-      *   - passing 'struct connect_event' to parameter of incompatible type 'void *'
-      *   Reason:
-      *     - ke_state is a pointer but ke_state->conn is not pointer because it just pointer to struct only.
-      *   Fix:
-      *     - address of ke_state->conn so it gave valid address for copy data{&ke_state->conn}
-      */
-      __builtin_memcpy(&ke_state->conn, &event, sizeof(event));
-    }
-
-    ke_state->has_conn = 1;
+    // get temporary struct for update map
+    struct ke_ctx_state zero = {};
+    // quickly update the map
+    bpf_map_update_elem(&ctx_state_map, &cid, &zero, BPF_NOEXIST);
+    // get the pointer for access data
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    // failure cases
+    if(!ke_state) return 0;
 
   }
+
+  /*
+  * Assumption:
+  *   - Attacker can fake connect first and real one later.
+  */
+  ke_state->flags |= CONNECT_FLAG;
+  ke_state->start_time = net_ts;
+
+  if(event.net_ts > ke_state->conn.net_ts){
+    /*
+    * BUG NOTE:
+    *   - passing 'struct connect_event' to parameter of incompatible type 'void *'
+    *   Reason:
+    *     - ke_state is a pointer but ke_state->conn is not pointer because it just pointer to struct only.
+    *   Fix:
+    *     - address of ke_state->conn so it gave valid address for copy data{&ke_state->conn}
+    */
+    __builtin_memcpy(&ke_state->conn, &event, sizeof(event));
+  }
+
+  ke_state->has_conn = 1;
+
 
 
   /*

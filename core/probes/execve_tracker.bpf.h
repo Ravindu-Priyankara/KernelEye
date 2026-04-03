@@ -144,6 +144,7 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
     if(!ke_state){
         // first time seeing this project{zero initialized}
+        // Stack Allocation: 352 bytes
         struct ke_ctx_state ke_new_state = {};
 
         // assign the values
