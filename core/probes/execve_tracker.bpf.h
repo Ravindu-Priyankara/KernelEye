@@ -151,6 +151,13 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
         ke_new_state.start_time = execve_ts;
 
         /*
+        *   We just removed old __builtin_memcpy. because we use a stable ABI and the same struct. So we can copy data without memcpy.
+        *   Benefits:
+        *       - reduce the verifier complexity.
+        */
+        ke_new_state.exec = *tmp_event;
+        ke_new_state.has_exec = 1;
+        /*
         *   No need to use the update map element helper. because we already checked this state.
         *
         *   Developer Note:
@@ -170,6 +177,9 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
         // already exists -> just update, not reset
         ke_state->flags |= EXECVE_FLAG;
         ke_state->start_time = execve_ts;
+
+        ke_state->exec = *tmp_event;
+        if(!ke_state->has_exec) ke_state->has_exec = 1;
     }
 
     // Copy scratchpad -> HASH map (persistent storage)
