@@ -44,7 +44,6 @@ struct ke_sockaddr {
 struct connect_event{
     __s32 fd;    // for track fd{signed}
     __u32 ppid; // parent process id 
-    // 3 bytes of padding
     __u64 net_ts;   // timestamp 
     struct ke_sockaddr addr;    // used for support few socket families
 };

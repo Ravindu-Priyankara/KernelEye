@@ -57,7 +57,7 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     /*
     *   get the dup2 events
     */
-    dup2_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    dup2_state = bpf_map_lookup_elem(&dup2_map, &cid);
     if(!dup2_state) return 0;
 
     /*
@@ -143,9 +143,9 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
     * Developer Note
     *   - but in the future this should be delay. because this is too early to delete
     */
-    if(delete_map_elements(&connect_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
-    if(delete_map_elements(&execve_hash_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
-    if(delete_map_elements(&dup2_map, &pid) != ERR_SUCCESS) return ERR_FAILURE;
+    if(delete_map_elements(&connect_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
+    if(delete_map_elements(&execve_hash_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
+    if(delete_map_elements(&dup2_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
     
     return ERR_SUCCESS;
 }
