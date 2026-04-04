@@ -5,12 +5,32 @@ All notable changes to Kernel Eye are documented in this file.
 The format is inspired by Keep a Changelog and follows semantic versioning principles.
 
 ---
-## [v1.1.0] - Initial Release (2026-03-25)
+## [v1.1.0] - Tracking process lineage(2026-03-25)
 ### Added
 
 - context ID-based tracking to prevent parent + child bypasses.
 - Improve map ABI correctness.
 - Remove unsafe kill and implement the logic for safely terminating the process(for kill pid should be > 100).
+- ABI Stabilization & Struct Layout Hardening
+  - Added:
+    - Introduced explicit `__reserved` fields across shared structs to enforce stable memory layout.
+    - Added `_Static_assert` checks for:
+      - struct sizes
+      - field offsets
+      - alignment guarantees
+  - Changed
+    - Reworked `ke_sockaddr` layout:
+      - Ensured fixed 24-byte size across IPv4/IPv6
+      - Eliminated reliance on implicit compiler padding
+      - Reordered fields for consistent ABI layout
+    - Standardized padding strategy:
+      - Replaced `__pad` with `__reserved` for ABI clarity and future extensibility
+  - Improved
+    - Strengthened kernel ↔ userland ABI contract
+    - Prevented silent breakage due to compiler differences or struct reordering
+    - Documented union sizing behavior for IPv4/IPv6 compatibility
+
+
 
 ## [v1.0.0] - Initial Release (2026-03-25)
 

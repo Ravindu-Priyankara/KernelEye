@@ -22,17 +22,21 @@
 #include <stddef.h>
 #endif
 
-// used for support ipv4 + ipv6
+// Supports IPv4 and IPv6
 // total bytes 24 bytes
 struct ke_sockaddr {
     __u16 family;   // socket family
-
+    __u16 port;
+    __u32 __reserved;
+    /*
+    *   ABI NOTE:
+    *       - Union always reserve enough space for the biggest one.
+    *       - So this union always 16 bytes.
+    */
     union {
         __u32 ipv4;        // AF_INET
         __u8  ipv6[16];    // AF_INET6
     };
-
-    __u16 port;
 };
 
 /*************************************
@@ -52,6 +56,7 @@ struct connect_event{
 //Total byte count is 272 bytes
 struct execve_event{
     __u32 ppid; // parent process id
+    __u32 __reserved;
     __u64 execve_ts;    // execve triggered timestamp
     char filename[256]; // filename {ex: '/bin/sh'}
 };
@@ -63,7 +68,7 @@ struct dup2_state{
     __u32 ppid; // parent process id
     __s32 oldfd; // for check connect fd == dup2 old fd
     __u8 stdio_redirects; // count of redirects
-    // 7 bytes of padding
+    __u8 __reserved[7]; // for stable ABI
 };
 
 /*
@@ -99,7 +104,7 @@ struct dup2_state{
 struct ke_ctx_state{
     __u64 start_time; // for cleanup{timeout}
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-    // 4 byte of padding   
+    __u32 __reserved;
 };
 /*************************************
 ******** Common Event Header *********
@@ -127,7 +132,7 @@ struct ke_event_header {
     __u32 pid;       // process id
     __u64 ts;        // primary timestamp
     __u32 ppid;      // parent pid 
-    // 4 bytes of padding
+    __u32 __reserved;
 };
 
 /****************************************
@@ -151,7 +156,7 @@ struct ke_reverse_shell_payload {
     __u64 last_dup2_ts; // helps for detection logic like this {connct_ts < dup2_ts < execve_ts}, andit will implements on future varients.
     struct ke_sockaddr addr;
     __u8 stdio_redirects;   // for check {stdin/out/err}
-    // 7 bytes of padding {__u8 pad[7]; if needed}
+    __u8 __reserved[7];
 };
 
 /*****************************
@@ -187,26 +192,38 @@ struct ke_suspicious_event {
 // connect_event must remain 40 bytes (aligned to 8)
 _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mismatch!");
 
+// context state must remain 16 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_ctx_state) == 16, "context state struct size mismatch!");
+
 // ke_event_header must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
 
-// ke_reverse_shell_payload must remain 296 bytes
+// ke_reverse_shell_payload must remain 312 bytes
 _Static_assert(sizeof(struct ke_reverse_shell_payload) == 312,"ke_reverse_shell_payload size mismatch!");
 
 // execve_event must remain 272 bytes 
 _Static_assert(sizeof(struct execve_event) == 272, "execve_event struct size mismatch!");
 
-// Protect reordering structs
-_Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");
-
 // ke_sockaddr must remain 24 bytes (align to 8)
 _Static_assert(sizeof(struct ke_sockaddr) == 24,"ke_sockaddr size mismatch");
 
-// protect ke_sockaddr reordering
-_Static_assert(offsetof(struct ke_sockaddr, port) == 20,"port offset changed");
-
-// dup2_state must remain 16 bytes
+// dup2_state must remain 24 bytes
 _Static_assert(sizeof(struct dup2_state) == 24, "dup2_state size mismatch");
+
+// streaming event must remain 336 bytes
+_Static_assert(sizeof(struct ke_suspicious_event) == 336, "streaming event mismatch!");
+
+// Protect reordering structs
+_Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");
+
+// protect ke_sockaddr reordering
+_Static_assert(offsetof(struct ke_sockaddr, port) == 2,"port offset changed");
+
+// check alignment of reverse shell payload
+_Static_assert(__alignof__(struct ke_reverse_shell_payload) == 8, "reverse shell payload alignment changed!");
+
+// check alignment of event header
+_Static_assert(__alignof__(struct ke_event_header) == 8, "event header alignment changed!");
 
 // Protect header types reordering
 _Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
