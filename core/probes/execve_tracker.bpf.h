@@ -166,7 +166,7 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     /*if(!is_reverse_shell(pid)){
         return 0;
     }*/
-    if(identify_the_suspicious_event(cid)) return 0;
+    if(!identify_the_suspicious_event(cid)) return 0;
     
     // pass data to userland via ring buffer
     if(ke_reverse_shell_type_event(cid, pid) != ERR_SUCCESS) return 0;
