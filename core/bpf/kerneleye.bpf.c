@@ -20,5 +20,8 @@
 // dup2 probe
 #include "../probes/dup2_tracker.bpf.h"
 
+// fork probe
+#include "../probes/fork_tracker.bpf.h"
+
 
 char LICENSE[] SEC("license") = "GPL";

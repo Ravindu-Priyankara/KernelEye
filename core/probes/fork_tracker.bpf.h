@@ -25,6 +25,12 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     __u64 cid;
 
     /*
+    *   For hold parent context id
+    *   Stack Allocation: 8 bytes
+    */
+    __u64 *parent_cid;
+
+    /*
     *   Developer Note:
     *       - shedule tracepoints does not use args[0-6].
     */
@@ -48,10 +54,11 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     */
     if(sanitize_the_pid(ppid) != ERR_SUCCESS) ppid = 0;
 
-    /*
-    *   Get the context ID of the parent process.
-    */
-    if(get_or_create_cid(ppid, &cid) != ERR_SUCCESS) return 0;
+    parent_cid = bpf_map_lookup_elem(&ctx_map, &ppid);
+    if(!parent_cid) return 0;
+
+    // for cid, assign the value of parent cid.
+    cid = *parent_cid;
 
     /*
     *   Save the child thread group ID under the parent context ID.
@@ -61,7 +68,7 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     *           - Child PID might be reused (rare but possible)
     *           - We don't care if it's overwritten because CID must stay consistent.
     */
-    bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_ANY)
+    bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_ANY);
 
     return 0;
 }
