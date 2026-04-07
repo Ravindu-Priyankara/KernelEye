@@ -156,7 +156,8 @@ struct ke_reverse_shell_payload {
     __u64 last_dup2_ts; // helps for detection logic like this {connct_ts < dup2_ts < execve_ts}, andit will implements on future varients.
     struct ke_sockaddr addr;
     __u8 stdio_redirects;   // for check {stdin/out/err}
-    __u8 __reserved[7];
+    __u8 valid_dup2;    // for check {connect fd == dup2 old fd}
+    __u8 __reserved[6];
 };
 
 /*****************************
