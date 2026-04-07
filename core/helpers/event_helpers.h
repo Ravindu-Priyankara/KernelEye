@@ -142,7 +142,7 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
     *       - connect fd == dup2 old fd
     *   Helps to remove false positive
     */
-    if(conn_event.fd == dup2_state.oldfd) r_event->data.valid_dup2 = 1;
+    if(conn_event->fd == dup2_state->oldfd) r_event->data.valid_dup2 = 1;
 
     //copy the ke_sockaddr struct
     __builtin_memcpy(&r_event->data.addr, &conn_event->addr, sizeof(struct ke_sockaddr));
