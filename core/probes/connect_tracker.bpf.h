@@ -22,25 +22,21 @@
 * │
 * │  r10 -0           : scratch / temporary usage
 * │
-* │  r10 -8           : tail of struct (includes port/flowinfo parts)
-* │  r10 -16          : struct sockaddr_in6 sin6_addr part
-* │  r10 -24          : struct sockaddr_in6 sin6_addr part / struct sockaddr_in sin/ struct ke_ctx_state ke_new_state.start_time
-* │  r10 -32          : start of sockaddr_in6 / parent ptr temp / cid / struct ke_ctx_state ke_new_state.flags
-* │  r10 -36          : __u32 ppid temporary
-* │  r10 -48          : struct sockaddr sa
-* │  r10 -56          : struct sockaddr sa (rest)
-* │  r10 -60          : event->addr.port (ipv4/ipv6)
-* │  r10 -64          : event.addr.ipv6 / ipv4
-* │  r10 -68          : connect_event event (ipv6 part)
-* │  r10 -72          : connect_event event (ipv4/ipv6 part)
-* │  r10 -76          : connect_event event (ipv4 part)
-* │  r10 -80          : event->addr.family
-* │  r10 -88          : event->net_ts
-* │  r10 -96          : event->ppid
-* │  r10 -100         : pid / general temporary storage
-* |  r10 -112         : ppid temporary/ key {cid_counter key}
+* |  r10 -8           : sockaddr_in6 sin6{}
+* |  r10 -16          : sockaddr_in6 sin6{}
+* |  r10 -24          : sockaddr_in sin{}, sockaddr_in6 sin6{}, ke_ctx_state
+* |  r10 -32          : sockaddr_in sin{}, sockaddr_in6 sin6{}, pointer for hold task struct parent process data, counter value , ke_ctx_state
+* |  r10 -36          : tmp used for hold ppid;
+* |  r10 -64          : IPv6 first 8 byte {Network Prefix}
+* |  r10 -72          : IPv6 second 8 byte {Interface ID}
+* |  r10 -78          : event->addr.port
+* |  r10 -80          : event->addr.family
+* |  r10 -88          : event.net_ts
+* |  r10 -92          : event.ppid
+* |  r10 -96          : event.fd
+* |  r10 -104         : ppid, key
 * │
-* Total stack used: 112 bytes
+* Total stack used: 104 bytes
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
@@ -56,10 +52,10 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 217 instructions
+*    Result: 223 instructions
 *
 *  Byte Size:
-*    xlated 1736B  (1736 / 8 = 217 instructions)
+*    xlated 1784B  (1784 / 8 = 223 instructions)
 * ===========================================================
 */
 

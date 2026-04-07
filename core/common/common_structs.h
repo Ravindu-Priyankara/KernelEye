@@ -185,9 +185,9 @@ struct ke_suspicious_event {
     struct ke_reverse_shell_payload data;   
 };
 
-/*************************************
-******* Struct Validations ***********
-**************************************/
+/*************************************************
+******* ABI invariants - DO NOT MODIFY ***********
+**************************************************/
 
 // connect_event must remain 40 bytes (aligned to 8)
 _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mismatch!");

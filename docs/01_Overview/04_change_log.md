@@ -5,30 +5,24 @@ All notable changes to Kernel Eye are documented in this file.
 The format is inspired by Keep a Changelog and follows semantic versioning principles.
 
 ---
-## [v1.1.0] - Tracking process lineage(2026-03-25)
-### Added
+## [v1.1.0] - Major Internal Improvements & ABI Stabilization(2026-03-25)
 
-- context ID-based tracking to prevent parent + child bypasses.
-- Improve map ABI correctness.
-- Remove unsafe kill and implement the logic for safely terminating the process(for kill pid should be > 100).
-- ABI Stabilization & Struct Layout Hardening
-  - Added:
-    - Introduced explicit `__reserved` fields across shared structs to enforce stable memory layout.
-    - Added `_Static_assert` checks for:
-      - struct sizes
-      - field offsets
-      - alignment guarantees
-  - Changed
-    - Reworked `ke_sockaddr` layout:
-      - Ensured fixed 24-byte size across IPv4/IPv6
-      - Eliminated reliance on implicit compiler padding
-      - Reordered fields for consistent ABI layout
-    - Standardized padding strategy:
-      - Replaced `__pad` with `__reserved` for ABI clarity and future extensibility
-  - Improved
-    - Strengthened kernel ↔ userland ABI contract
-    - Prevented silent breakage due to compiler differences or struct reordering
-    - Documented union sizing behavior for IPv4/IPv6 compatibility
+// example 
+
+- Added
+  - Introduced CID-based tracking model (replacing PID-only correlation)
+  - Added bitmask-based syscall state tracking (connect, execve, dup2)
+  - Added strict ABI validation using _Static_assert (size, offset, alignment)
+
+- Changed
+  - Reworked shared structs to ensure stable kernel ↔ userland ABI
+  - Standardized padding using __reserved fields for future extensibility
+  - Improved ke_sockaddr layout for consistent IPv4/IPv6 handling
+
+- Improved
+  - Detection accuracy through multi-syscall correlation
+  - Memory layout predictability across compiler versions
+  - Code readability and structural consistency
 
 
 
@@ -74,6 +68,8 @@ The format is inspired by Keep a Changelog and follows semantic versioning princ
 - Enhanced syscall correlation engine
 - Process relationship mapping (parent-child tracking)
 - Detection rule abstraction layer
+- change hash map to LRU hashmap(best for map filling issue)
+- change sigterm -> sigkill or better approach.
 
 ### Optimization Ideas
 - Reduce event size by shrinking filename buffer (e.g., 255 → 64 bytes)
