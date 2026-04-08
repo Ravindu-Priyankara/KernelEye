@@ -14,7 +14,7 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 32 bytes
+*    Result : Maximum stack depth = 48 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
@@ -22,17 +22,18 @@
 * │
 * │  r10               : frame pointer (read-only)
 * │
-* |  r10 -8            : struct task_struct *parent, pointer for extract parent ppid(helpers/common_helpers.h)
-* |  r10 -12           : __u32 ppid {inside the parent ppid extraction helper function}
-* |  r10 -16           : __u32 pid
-* │  r10 -20           : __u32 key
+* |  r10 -4            : tmp hold ppid(u32)
+* |  r10 -8            : key(u32)
+* |  r10 -16           : reused slot, ppid(u32), key(u32), cid(u64), follows paadding
+* |  r10 -24           : temporary zero struct buffer
+* |  r10 -32           : heavily reused slot, pointer for parent struct(8 bytes), reuse for cid(u64), temp key storage
+* |  r10 -40           : tmp_event pointer, reuse for cid(u64)
 * │
-* Logical stack usage : 24 bytes
-* Verifier stack depth: 32 bytes (8-byte aligned)
+* Logical stack usage : 40 bytes
+* Verifier stack depth: 48 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
-*  - Stack size = max depth reached thats why additional 4 bytes have => [8 bytes pointer][4 bytes ppid][4 bytes pid][4 bytes key][4 bytes unused] , usage = 20 bytes but allocation 24 bytes
 *  - Helps debugging, verifier checks, and future maintenance
 * ========================================================================
 *
@@ -40,10 +41,10 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 277 instructions
+*    Result: 352 instructions
 *
 *  Byte Size:
-*    xlated 2216B  (2216 / 8 = 277 instructions)
+*    xlated 2816B  (2816 / 8 = 352 instructions)
 * =========================================================================
 */
 
@@ -159,14 +160,11 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     if(force_update_map_element(&execve_hash_map, &cid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
 
     /*
-    * check is that reverse shell
+    * check is that suspicious event
     * conditions:
     *   - connect, dup2, execve syscalls should be triggered
     *   - dup2 should be triggered and it must have descripter count 2 or higher {stdin/out/err}
     */
-    /*if(!is_reverse_shell(pid)){
-        return 0;
-    }*/
     if(!identify_the_suspicious_event(cid)) return 0;
     
     // pass data to userland via ring buffer
