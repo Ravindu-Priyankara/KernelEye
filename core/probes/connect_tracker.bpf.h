@@ -20,7 +20,7 @@
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10 -0           : scratch / temporary usage
+* │  r10              : frame pointer (read-only)
 * │
 * |  r10 -8           : sockaddr_in6 sin6{}
 * |  r10 -16          : sockaddr_in6 sin6{}

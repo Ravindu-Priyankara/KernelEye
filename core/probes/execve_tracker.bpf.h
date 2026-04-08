@@ -14,20 +14,21 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 24 bytes
+*    Result : Maximum stack depth = 32 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10 -0           : scratch / temporary usage
+* │  r10               : frame pointer (read-only)
 * │
 * |  r10 -8            : struct task_struct *parent, pointer for extract parent ppid(helpers/common_helpers.h)
 * |  r10 -12           : __u32 ppid {inside the parent ppid extraction helper function}
 * |  r10 -16           : __u32 pid
 * │  r10 -20           : __u32 key
 * │
-* Total stack used: 24 bytes
+* Logical stack usage : 24 bytes
+* Verifier stack depth: 32 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:

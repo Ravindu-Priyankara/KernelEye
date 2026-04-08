@@ -20,7 +20,7 @@
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10.             : frame pointer (read-only)
+* │  r10              : frame pointer (read-only)
 * │
 * |  r10 -4           : temp hold pid for sanitize(u32)
 * |  r10 -8           : pid(tgid, 4 bytes)
