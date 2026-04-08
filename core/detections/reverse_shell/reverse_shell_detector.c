@@ -24,6 +24,7 @@ int reverse_shell_time_correlation(
     __u64 net_ts,
     __u64 dup2_ts,
     __u8 redirects,
+    __u8 valid_fd; // for conn fd == dup2 old fd
     struct ke_detection_result *result
 )
 {
@@ -71,6 +72,9 @@ int reverse_shell_time_correlation(
         if (net_ts <= dup2_ts && dup2_ts <= execve_ts) {
             result->score += 10; // ordering bonus
         }
+
+        // connect fd == dup2 old fd
+        if(valid_fd) result->score += 10;
     }
 
     return 0;
@@ -156,6 +160,7 @@ int detect_reverse_shell(
         event->data.net_ts,
         event->data.last_dup2_ts,
         event->data.stdio_redirects,
+        event->data.valid_dup2,
         result
     );
 
