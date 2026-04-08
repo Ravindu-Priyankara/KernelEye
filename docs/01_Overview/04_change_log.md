@@ -7,17 +7,17 @@ The format is inspired by Keep a Changelog and follows semantic versioning princ
 ---
 ## [v1.1.0] - Major Internal Improvements & ABI Stabilization(2026-03-25)
 
-// example 
-
 - Added
   - Introduced CID-based tracking model (replacing PID-only correlation)
   - Added bitmask-based syscall state tracking (connect, execve, dup2)
   - Added strict ABI validation using _Static_assert (size, offset, alignment)
+  - Added a new filter for the kernel side to work efficiently(use bitmask flags).
 
 - Changed
   - Reworked shared structs to ensure stable kernel ↔ userland ABI
   - Standardized padding using __reserved fields for future extensibility
   - Improved ke_sockaddr layout for consistent IPv4/IPv6 handling
+  - Removed kernel side old filter(is_reverse_shell helper). 
 
 - Improved
   - Detection accuracy through multi-syscall correlation
