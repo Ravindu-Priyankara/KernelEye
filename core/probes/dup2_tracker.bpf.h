@@ -14,25 +14,27 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 32 bytes
+*    Result : Maximum stack depth = 48 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10 -0           : scratch / temporary usage
+* │  r10.             : frame pointer (read-only)
 * │
-* │  r10 -4           : __u32 ppid
-* |  r10 -8           : __u32 pid
-* |  r10 -12          : __u8 dup2_state.stdio_redirects
-* |  r10 -16          : __u32 dup2_state.ppid
-* |  r10 -24          : __u64 dup2_state.last_dup2_ts
+* |  r10 -4           : temp hold pid for sanitize(u32)
+* |  r10 -8           : pid(tgid, 4 bytes)
+* |  r10 -16          : reused slot = ppid(u32), key(u32), cid (u64)
+* |  r10 -24          : start of dup2_state struct, stdio_redirects (u8), padding follows
+* |  r10 -32          : temp struct space (8 bytes chunk)
+* |  r10 -40          : reused heavily= parent pointer (u64), new_cid (u64), struct zero padding, dup2_state temp storage
 * │
-* Total stack used: 32 bytes
+* Logical stack usage : 40 bytes
+* Verifier stack depth: 48 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
-*  - r10 -12 offset has 1 byte but veryfier align it with additional 3 bytes.
+*  - few slots reused, and stdio_redirects (u8) followed by compiler-inserted padding for alignment
 *  - Helps debugging, verifier checks, and future maintenance
 * ========================================================================
 *
@@ -40,10 +42,10 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 82 instructions
+*    Result: 167 instructions
 *
 *  Byte Size:
-*    xlated 656B  (656 / 8 = 82 instructions)
+*    xlated 1336B  (1336 / 8 = 167 instructions)
 * =========================================================================
 */
 
@@ -118,8 +120,8 @@ int dup2_enter_handler(
     pid = get_tgid();
     ppid = get_ppid();
     dup2_ts = get_trigger_time(); // capture the timestamp
-    fd_new = (__s32)ctx->args[1];   // casting is important because it return __u64
-    old_fd = (__s32)ctx->args[0];
+    fd_new = (__s32)ctx->args[1]; // casting is important because it return __u64
+    old_fd = (__s32)ctx->args[0]; 
 
 
     // Only track stdin/out/err, Negative FDs are ignored for safety.
@@ -161,6 +163,7 @@ int dup2_enter_handler(
         if(!dup2_state) return 0;
     }
 
+    // Update the dup2_state
     dup2_state->last_dup2_ts = dup2_ts;
     dup2_state->ppid = ppid;
     dup2_state->oldfd = old_fd;
