@@ -24,7 +24,7 @@ int reverse_shell_time_correlation(
     __u64 net_ts,
     __u64 dup2_ts,
     __u8 redirects,
-    __u8 valid_fd; // for conn fd == dup2 old fd
+    __u8 valid_fd, // for conn fd == dup2 old fd
     struct ke_detection_result *result
 )
 {
