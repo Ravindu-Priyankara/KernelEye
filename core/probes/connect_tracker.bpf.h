@@ -36,7 +36,8 @@
 * |  r10 -96          : event.fd
 * |  r10 -104         : ppid, key
 * │
-* Total stack used: 104 bytes
+* Logical stack usage : 104 bytes
+* Verifier stack depth: 112 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
