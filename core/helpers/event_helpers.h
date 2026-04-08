@@ -7,30 +7,6 @@
 #include "../maps/maps.h"
 #include "../common/common_sockets.h"
 
-/*
-*   This helper use to check connect + dup2 events happen before and dup2 file descripter >= 2 ,(stdin/out/err)
-*   Arguments: pid
-*   Return: true or false
-*   Stack Allocation: 16 bytes
-*/
-static __always_inline int is_reverse_shell(__u32 pid){
-    // for extract given pid has connect events.
-    // Stack Allocation: 8 bytes
-    struct connect_event *conn_event = check_map_data_availability(&connect_map, &pid);
-
-    // for extract given pid has dup2 states.
-    // Stack Allocation: 8 bytes
-    struct dup2_state *dup2_state = check_map_data_availability(&dup2_map, &pid);
-
-    // for extract givent pid has execve events.
-    // Stack Allocation: 8 bytes
-    struct execve_event *execve_event = check_map_data_availability(&execve_hash_map, &pid);
-
-    if(!conn_event || !dup2_state || !execve_event) return 0;
-
-    // if every checks true return true(1) otherwise false(0)
-    return dup2_state->stdio_redirects >= 2; // some payloads skip stderr thats why i choose 2 rather than strictly depend on 3
-}
 
 /*
 *   This helper use to check connect + dup2 events happen before and dup2 file descripter >= 2 ,(stdin/out/err)
