@@ -153,7 +153,7 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
     }
 
     // update the values
-    ke_state->start_time = execve_ts;
+    ke_state->last_time = execve_ts;
     ke_state->flags |= EXECVE_FLAG;
 
     // Copy scratchpad -> HASH map (persistent storage)

@@ -148,7 +148,7 @@ int dup2_enter_handler(
     }
 
     // update the map
-    ke_state->start_time = dup2_ts;
+    ke_state->last_time = dup2_ts;
     ke_state->flags |= DUP2_FLAG;
 
     // check dup2 map data availability
