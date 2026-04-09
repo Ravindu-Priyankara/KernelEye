@@ -105,7 +105,7 @@ struct dup2_state{
 struct ke_ctx_state{
     __u64 last_time; // for cleanup{timeout}
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-    __u8  stage;    // normal | suspicious | blocked | confirmed_revsh {defined in common/common/syscalls.h}
+    __u8  stage;    // normal | suspicious | confirmed_revsh | blocked {defined in common/common/syscalls.h}
     __u8 __reserved[3];
 };
 /*************************************
