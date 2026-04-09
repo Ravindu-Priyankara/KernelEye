@@ -12,7 +12,7 @@ int block_execute(
     *   For protect system process.
     */
     if(event->pid > 100){
-        kill(event->pid, SIGTERM);
+        kill(event->pid, SIGKILL);
     }
     //printf("[KernelEye BLOCK] Malicious process killed!\n");
     //TODO: show more details {pid , ..}
