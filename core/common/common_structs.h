@@ -85,6 +85,7 @@ struct dup2_state{
 *   EXECVE_FLAG          0010            Execve seen  |
 *   DUP2_FLAG            0100            Dup2 seen    |
 *   ==================================================|
+*   Flags can be change.
 *
 *   Design Notes:
 *       - Multiple flags can be set simultaneously
@@ -102,9 +103,10 @@ struct dup2_state{
 *   Total byte count is 16 bytes
 */
 struct ke_ctx_state{
-    __u64 start_time; // for cleanup{timeout}
+    __u64 last_time; // for cleanup{timeout}
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-    __u32 __reserved;
+    __u8  stage;    // normal | suspicious | blocked | confirmed_revsh {defined in common/common/syscalls.h}
+    __u8 __reserved[3];
 };
 /*************************************
 ******** Common Event Header *********
