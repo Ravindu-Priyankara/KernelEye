@@ -20,7 +20,21 @@ typedef enum {
 
 // stages
 
-#define normal 0
-#define suspicious 1
-#define confirmed_revsh 2
-#define blocked 3
+enum ke_stage {
+    // NEUTRAL
+    STAGE_NORMAL = 0,   // NORMAL STAGE
+
+    // SYSCALLS
+    STAGE_EXEC,         // SUSPICIOUS EXEC OBSERVED
+    STAGE_SOCKET,       // SOCKET CREATED
+    STAGE_CONNECT,      // CONNECTION ESTABLISHED
+    STAGE_REDIRECTS,    // DUP2/DUP3/FCNTL BASED FD HIJACK HAPPENED
+
+    // FOR ACTIONS
+    STAGE_CONFIRMED,    // DETECTING SUSPICIOS PROCESS
+    STAGE_BLOCKED       // FOR ENFORCEMENT
+};
+
+// macro for only update stage is higher than current one
+#define ADVANCE_STAGE(s, new) \
+    do {if((s) < (new)) (s) = (new); } while (0)
