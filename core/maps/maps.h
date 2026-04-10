@@ -66,6 +66,10 @@ struct {
     __type(value, __u64); // context id(CID)
 } ctx_map SEC(".maps");
 
+/***********************************
+*********** LRU Hash Maps **********
+************************************/
+
 /*
 *   This map is used to hold triggered syscall flags. And the key is context ID, not the thread group ID.
 *   Benifits:
@@ -73,7 +77,7 @@ struct {
 *       - Prevent the fork based bypasses.
 */
 struct {
-    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(type, BPF_MAP_TYPE_LRU_HASH);
     __uint(max_entries, HASHMAP_SIZE);
     __type(key, __u64);     // key is the context id
     __type(value, struct ke_ctx_state);
