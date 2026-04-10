@@ -13,10 +13,16 @@ typedef enum {
 /*
 *   The connect syscall can be bypassed. So we decided to track the socket also.
 */
-#define SOCKET_FLAG     (1 << 0)    // 0001
-#define CONNECT_FLAG    (1 << 1)    // 0010
-#define DUP2_FLAG       (1 << 2)    // 0100
-#define EXECVE_FLAG     (1 << 3)    // 1000
+#define SOCKET_SEEN     (1 << 0)    // 0001
+#define CONNECT_SEEN    (1 << 1)    // 0010
+#define DUP_SEEN        (1 << 2)
+#define DUP2_SEEN       (1 << 3)  
+#define DUP3_SEEN       (1 << 4)  
+#define FCNTL_SEEN      (1 << 5)
+#define FORK_SEEN       (1 << 6)
+#define OPENPTY_SEEN    (1 << 7)
+#define FORKPTY_SEEN    (1 << 8) 
+#define EXECVE_SEEN     (1 << 9)   
 
 // stages
 

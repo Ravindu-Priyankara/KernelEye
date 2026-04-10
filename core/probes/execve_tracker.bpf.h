@@ -154,7 +154,7 @@ int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
     // update the values
     ke_state->last_time = execve_ts;
-    ke_state->flags |= EXECVE_FLAG;
+    ke_state->flags |= EXECVE_SEEN;
 
     // Copy scratchpad -> HASH map (persistent storage)
     if(force_update_map_element(&execve_hash_map, &cid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;

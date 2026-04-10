@@ -149,7 +149,7 @@ int dup2_enter_handler(
 
     // update the map
     ke_state->last_time = dup2_ts;
-    ke_state->flags |= DUP2_FLAG;
+    ke_state->flags |= DUP2_SEEN;
 
     // check dup2 map data availability
     dup2_state = bpf_map_lookup_elem(&dup2_map, &pid);

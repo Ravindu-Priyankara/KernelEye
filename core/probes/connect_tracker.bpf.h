@@ -195,7 +195,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   * Assumption:
   *   - Attacker can fake connect first and real one later.
   */
-  ke_state->flags |= CONNECT_FLAG;
+  ke_state->flags |= CONNECT_SEEN;
   ke_state->last_time = net_ts;
 
   /*

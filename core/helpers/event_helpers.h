@@ -46,7 +46,7 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     *   For optimization:
     *       - This avoids recomputing mask
     */
-    __u32 required = CONNECT_FLAG | DUP2_FLAG | EXECVE_FLAG;
+    __u32 required = CONNECT_SEEN | DUP2_SEEN | EXECVE_SEEN;
     /*
     *   Check the flags to identify the suspicious process.
     *   Detection:
