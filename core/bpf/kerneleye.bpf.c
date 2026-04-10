@@ -23,5 +23,7 @@
 // fork probe
 #include "../probes/fork_tracker.bpf.h"
 
+// socket create LSM hook
+#include "../probes/socket_create_lsm.bpf.h"
 
 char LICENSE[] SEC("license") = "GPL";
