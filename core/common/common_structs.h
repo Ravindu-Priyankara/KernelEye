@@ -100,13 +100,14 @@ struct dup2_state{
 *   Defined in:
 *       - common/common_syscalls.h
 *
-*   Total byte count is 16 bytes
+*   Total byte count is 24 bytes
 */
 struct ke_ctx_state{
     __u64 last_time; // for cleanup{timeout}
     __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-    __u8  stage;    // normal | suspicious | confirmed_revsh | blocked {defined in common/common/syscalls.h}
-    __u8 __reserved[3];
+    __u32 score;    // for score
+    __u16  stage;    //{defined in common/common/syscalls.h}
+    __u8 __reserved[6];
 };
 /*************************************
 ******** Common Event Header *********
@@ -195,8 +196,8 @@ struct ke_suspicious_event {
 // connect_event must remain 40 bytes (aligned to 8)
 _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mismatch!");
 
-// context state must remain 16 bytes (aligned to 8)
-_Static_assert(sizeof(struct ke_ctx_state) == 16, "context state struct size mismatch!");
+// context state must remain 24 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_ctx_state) == 24, "context state struct size mismatch!");
 
 // ke_event_header must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
