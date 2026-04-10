@@ -43,7 +43,7 @@ int BPF_KPROBE(dup_enter, unsigned int oldfd){
 }
 
 SEC("kretprobe/__x64_sys_dup")
-int BPF_KRETPROBE(dup_exit, struct pt_regs *ctx){
+int BPF_KRETPROBE(dup_exit){
 
     struct ke_ctx_state *ke_state;
     struct connect_event *conn_event;
@@ -64,7 +64,7 @@ int BPF_KRETPROBE(dup_exit, struct pt_regs *ctx){
     oldfd = *val;
 
     // get the return value(newfd)
-    newfd = PT_REGS_RC(ctx) 
+    newfd = PT_REGS_RC(ctx);
     if(newfd < 0) goto cleanup;
 
     // Load the pre process correlation state

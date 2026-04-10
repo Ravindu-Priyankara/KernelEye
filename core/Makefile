@@ -15,7 +15,7 @@ BUILD_DIR = ./build
 
 DEBUG ?= 0   # 0 = no debug, 1 = debug
 
-BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ \
+BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ -D__TARGET_ARCH_x86 \
 	-I./common -I./helpers -I./maps -I/usr/include -I/usr/include/bpf
 
 ifeq ($(DEBUG),1)
