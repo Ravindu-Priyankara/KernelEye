@@ -95,6 +95,7 @@ struct dup2_state{
 *   Usage:
 *       - Add flag = ctx->flags |= CONNECT_FLAG
 *       - Remove Flag = ctx->flags &= ~CONNECT_FLAG
+*       - Keep connect flag and other all remove ctx->flags &= CONNECT_FLAG
 *       - Check Flag = if(ctx->flags & CONNECT_FLAG){ connect already happened } 
 *
 *   Defined in:
