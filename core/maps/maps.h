@@ -53,6 +53,16 @@ struct {
 } dup2_map SEC(".maps"); // hashmap name
 
 /*
+*   Temporary map. And used for hold dup old fd.
+*/
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, HASHMAP_SIZE);
+    __type(key, __u64); //cid
+    __type(value, __u32); // oldfd
+} dup_temp_map SEC(".maps");
+
+/*
 *   This map is used to hold generated context IDs.
 *   Benefits:
 *       - for track parents and childs.
