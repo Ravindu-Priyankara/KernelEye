@@ -196,7 +196,7 @@ struct ke_suspicious_event {
 
 struct scratch_buf{
     char buffer[256];
-}
+};
 
 /*************************************************
 ******* ABI invariants - DO NOT MODIFY ***********
