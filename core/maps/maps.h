@@ -93,6 +93,12 @@ struct {
     __type(value, struct ke_ctx_state);
 } ctx_state_map SEC(".maps");
 
+struct {
+    __uint(type, BPF_MAP_TYPE_LRU_HASH);
+    __uint(max_entries, HASHMAP_SIZE);
+    __type(key, __u64);
+    __type(value, struct dup3_state);
+} dup3_map SEC(".maps");
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
