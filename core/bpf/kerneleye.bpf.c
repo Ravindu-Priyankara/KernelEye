@@ -26,4 +26,10 @@
 // socket create LSM hook
 #include "../probes/socket_create_lsm.bpf.h"
 
+// dup tracker(kprobe)
+#include "../probes/dup_kprobe.bpf.h"
+
+// dup3 tracker
+#include "../probes/dup3_tracker.bpf.h"
+
 char LICENSE[] SEC("license") = "GPL";
