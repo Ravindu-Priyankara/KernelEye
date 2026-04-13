@@ -1,22 +1,22 @@
-
-SEC("tracepoint/syscalls/sys_enter_open")
-int open_handler(struct trace_event_raw_sys_enter *ctx){
+SEC("tracepoint/syscalls/sys_enter_openat")
+int openat_handler(struct trace_event_raw_sys_enter *ctx){
 
     __u64 cid;
-    __u64 open_ts;
+    __u64 openat_ts;
     __u32 pid;
-    __u32 key = 0;  // percpu map key
+    __u32 key = 0;
     int ret;
 
     struct ke_ctx_state *ke_state;
     struct scratch_buf *scratch_buf;
 
     pid = get_tgid();
-    open_ts = get_trigger_time();
+    openat_ts = get_trigger_time();
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
 
     if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
-
+    
+    // extract the state data
     ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
     if(!ke_state){
         struct ke_ctx_state ke_new_state = {};
@@ -26,9 +26,10 @@ int open_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
-    ke_state->last_time = open_ts;
-    if(!(ke_state->flags & OPEN_SEEN)){
-        ke_state->flags |= OPEN_SEEN;
+    // set openat flag
+    ke_state->last_time = openat_ts;
+    if(!(ke_state->flags & OPENAT_SEEN)){
+        ke_state->flags |= OPENAT_SEEN;
     }
 
     // get the percpu map for copy filename
@@ -36,9 +37,9 @@ int open_handler(struct trace_event_raw_sys_enter *ctx){
     if(!scratch_buf) return 0;
 
     // use scratchpad for copy filename
-    ret = bpf_probe_read_user_str(scratch_buf->buffer, sizeof(scratch_buf->buffer), (void *)ctx->args[0]);
+    ret = bpf_probe_read_user_str(scratch_buf->buffer, sizeof(scratch_buf->buffer), (void *)ctx->args[1]);
     if(ret < 0){
-        scratch_buf->buffer[0] = '\0'; //unknown(null terminaator)
+        scratch_buf->buffer[0] = "\0"; //unknown
         return 0;
     }
 
