@@ -157,7 +157,7 @@ struct ke_reverse_shell_payload {
     char filename[256]; // filename ("/bin/sh"),
     __u64 execve_ts; // execve timestamp 
     __u64 net_ts; // connect timestamp 
-    __u64 last_dup2_ts; // helps for detection logic like this {connct_ts < dup2_ts < execve_ts}, andit will implements on future varients.
+    __u64 last_dup_ts; // helps for detection logic like this {connct_ts < dup2_ts < execve_ts}, andit will implements on future varients.
     struct ke_sockaddr addr;
     __u8 stdio_redirects;   // for check {stdin/out/err}
     __u8 valid_dup2;    // for check {connect fd == dup2 old fd}
