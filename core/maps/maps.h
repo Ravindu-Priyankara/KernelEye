@@ -104,6 +104,14 @@ struct {
     __type(value, struct execve_event);    // This struct hold the all execve event data temporary
 }tmp_execve_map SEC(".maps");
 
+// used as scratchpad
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, struct scratch_buf);
+}scratch_buf_map SEC(".maps");
+
 /****************************************
 *************** Array Maps **************
 *****************************************/
