@@ -164,7 +164,7 @@ int dup2_enter_handler(
     }
 
     // Update the dup2_state
-    dup2_state->last_dup2_ts = dup2_ts;
+    dup2_state->last_dup_ts = dup2_ts;
     dup2_state->ppid = ppid;
     dup2_state->oldfd = old_fd;
     dup2_state->stdio_redirects++;

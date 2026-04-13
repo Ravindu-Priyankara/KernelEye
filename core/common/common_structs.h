@@ -64,7 +64,7 @@ struct execve_event{
 // This struct use for tracking dup2 and dup3 state with LRU hashmap
 // Total byte count is 24 bytes
 struct dup_state{
-    __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
+    __u64 last_dup_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __s32 oldfd; // for check connect fd == dup2 old fd
     __u8 stdio_redirects; // count of redirects
