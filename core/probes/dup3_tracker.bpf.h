@@ -57,13 +57,14 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     dup3_state->last_dup_ts = dup3_ts;
     dup3_state->stdio_redirects++;
 
+    // openpty or forkpty based reverse shells not trigger this check
     connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-    if(!connect_event) return 0;
-
-    // check sock fd == dup3 old fd
-    if(connect_event->fd == old_fd){
-        // 5 x 3 
-        ke_state->score += 5;
+    if(connect_event){
+        // check sock fd == dup3 old fd
+        if(connect_event->fd == old_fd){
+            // 5 x 3 
+            ke_state->score += 5;
+        }
     }
 
     // check redirects
