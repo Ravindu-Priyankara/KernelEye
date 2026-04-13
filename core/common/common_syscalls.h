@@ -20,9 +20,10 @@ typedef enum {
 #define DUP3_SEEN       (1 << 4)  
 #define FCNTL_SEEN      (1 << 5)
 #define FORK_SEEN       (1 << 6)
-#define OPENPTY_SEEN    (1 << 7)
-#define FORKPTY_SEEN    (1 << 8) 
-#define EXECVE_SEEN     (1 << 9)   
+#define EXECVE_SEEN     (1 << 7)
+#define OPEN_SEEN       (1 << 8)
+#define OPENAT_SEEN     (1 << 9)
+#define OPENAT2_SEEN    (1 << 10)   
 
 // stages
 
@@ -35,6 +36,7 @@ enum ke_stage {
     STAGE_SOCKET,       // SOCKET CREATED
     STAGE_CONNECT,      // CONNECTION ESTABLISHED
     STAGE_REDIRECTS,    // DUP2/DUP3/FCNTL BASED FD HIJACK HAPPENED
+    STAGE_TTY,          // PTY
 
     // FOR ACTIONS
     STAGE_CONFIRMED,    // DETECTING SUSPICIOS PROCESS
