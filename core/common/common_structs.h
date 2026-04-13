@@ -213,7 +213,7 @@ _Static_assert(sizeof(struct execve_event) == 272, "execve_event struct size mis
 _Static_assert(sizeof(struct ke_sockaddr) == 24,"ke_sockaddr size mismatch");
 
 // dup2_state must remain 24 bytes
-_Static_assert(sizeof(struct dup2_state) == 24, "dup2_state size mismatch");
+_Static_assert(sizeof(struct dup_state) == 24, "dup2_state size mismatch");
 
 // streaming event must remain 336 bytes
 _Static_assert(sizeof(struct ke_suspicious_event) == 336, "streaming event mismatch!");

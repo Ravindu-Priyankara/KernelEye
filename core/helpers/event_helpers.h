@@ -28,7 +28,7 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     *   for check redirect counts
     *   Stack Allocation: 8 bytes
     */
-    struct dup2_state *dup2_state;
+    struct dup_state *dup2_state;
 
     /*
     *    Can return NULL. So, a null check is mandatory.
@@ -39,7 +39,7 @@ static __always_inline int identify_the_suspicious_event(__u64 cid){
     /*
     *   get the dup2 events
     */
-    dup2_state = bpf_map_lookup_elem(&dup2_map, &cid);
+    dup2_state = bpf_map_lookup_elem(&dup_map, &cid);
     if(!dup2_state) return 0;
 
     /*
@@ -79,7 +79,7 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
 
     // for extract given pid has dup2 events
     // Stack Allocation: 8 bytes
-    struct dup2_state *dup2_state;
+    struct dup_state *dup2_state;
 
     // for hold reverse shell type events
     // Stack Allocation: 8 bytes
@@ -94,7 +94,7 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
     if(!exe_event) return ERR_FAILURE;
 
     // extract the dup2 data
-    dup2_state = check_map_data_availability(&dup2_map, &cid);
+    dup2_state = check_map_data_availability(&dup_map, &cid);
     if(!dup2_state) return ERR_FAILURE;
 
     // reserve a space

@@ -44,7 +44,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     dup3_state = bpf_map_lookup_elem(&dup_map, &cid);
     // first dup3
     if(!dup3_state){
-        struct dup3_state new_dup3_state = {};
+        struct dup_state new_dup3_state = {};
         new_dup3_state.stdio_redirects = 0;
 
         bpf_map_update_elem(&dup_map, &cid, &new_dup3_state, BPF_NOEXIST);

@@ -155,7 +155,7 @@ int dup2_enter_handler(
     dup2_state = bpf_map_lookup_elem(&dup_map, &pid);
     if(!dup2_state){
         // stack Allocation: 24 bytes
-        struct dup2_state new_dup2_state = {};
+        struct dup_state new_dup2_state = {};
         // for counter redirects
         new_dup2_state.stdio_redirects = 0;
         bpf_map_update_elem(&dup_map, &cid, &new_dup2_state, BPF_NOEXIST);
