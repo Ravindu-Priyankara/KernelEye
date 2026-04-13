@@ -43,15 +43,6 @@ struct {
     __type(key, __u64); // cid
     __type(value, struct execve_event); // struct for hold data
 } execve_hash_map SEC(".maps");
-
-// This hashmap used for track dup2 events
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);    // map type
-    __uint(max_entries, HASHMAP_SIZE); // hashmap maximum entries
-    __type(key, __u64); // cid
-    __type(value, struct dup2_state); // This struct hold the all dup2 events
-} dup2_map SEC(".maps"); // hashmap name
-
 /*
 *   Temporary map. And used for hold dup old fd.
 */
@@ -93,12 +84,14 @@ struct {
     __type(value, struct ke_ctx_state);
 } ctx_state_map SEC(".maps");
 
+// for dup2 and 3 data
 struct {
     __uint(type, BPF_MAP_TYPE_LRU_HASH);
     __uint(max_entries, HASHMAP_SIZE);
     __type(key, __u64);
-    __type(value, struct dup3_state);
-} dup3_map SEC(".maps");
+    __type(value, struct dup_state);
+} dup_map SEC(".maps");
+
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
