@@ -71,6 +71,16 @@ struct dup2_state{
     __u8 __reserved[7]; // for stable ABI
 };
 
+// for hold dup3 data
+// Stack Allocation : 16 bytes
+struct dup3_state{
+    __s32 oldfd;
+    __s32 newfd;
+    __u32 ppid;
+    __u8 stdio_redirects;
+    __u8 __reserved[3];
+}
+
 /*
 *   This struct use for tracking triggered syscalls flags
 *
