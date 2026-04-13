@@ -28,19 +28,12 @@ typedef enum {
 // stages
 
 enum ke_stage {
-    // NEUTRAL
-    STAGE_NORMAL = 0,   // NORMAL STAGE
-
-    // SYSCALLS
-    STAGE_EXEC,         // SUSPICIOUS EXEC OBSERVED
-    STAGE_SOCKET,       // SOCKET CREATED
-    STAGE_CONNECT,      // CONNECTION ESTABLISHED
-    STAGE_REDIRECTS,    // DUP2/DUP3/FCNTL BASED FD HIJACK HAPPENED
-    STAGE_TTY,          // PTY
-
-    // FOR ACTIONS
-    STAGE_CONFIRMED,    // DETECTING SUSPICIOS PROCESS
-    STAGE_BLOCKED       // FOR ENFORCEMENT
+    STAGE_NORMAL = 0,
+    STAGE_SUSPICIOUS = 10,
+    STAGE_BEHAVIORAL = 20,
+    STAGE_HIGH_RISK = 30,
+    STAGE_CONFIRMED = 40,
+    STAGE_BLOCKED = 50
 };
 
 // macro for only update stage is higher than current one
