@@ -111,7 +111,7 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
     r_event->data.execve_ts = exe_event->execve_ts;
     r_event->data.net_ts = conn_event->net_ts;
     __builtin_memcpy(r_event->data.filename, exe_event->filename, sizeof(r_event->data.filename));
-    r_event->data.last_dup2_ts = dup2_state->last_dup2_ts;
+    r_event->data.last_dup_ts = dup2_state->last_dup_ts;
     r_event->data.stdio_redirects = dup2_state->stdio_redirects;
     /*
     *   Check:
@@ -135,7 +135,7 @@ static __always_inline int ke_reverse_shell_type_event(__u64 cid, __u32 pid){
     */
     if(delete_map_elements(&connect_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
     if(delete_map_elements(&execve_hash_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
-    if(delete_map_elements(&dup2_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
+    if(delete_map_elements(&dup_map, &cid) != ERR_SUCCESS) return ERR_FAILURE;
     
     return ERR_SUCCESS;
 }
