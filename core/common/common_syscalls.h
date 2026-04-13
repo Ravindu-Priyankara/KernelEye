@@ -23,7 +23,8 @@ typedef enum {
 #define EXECVE_SEEN     (1 << 7)
 #define OPEN_SEEN       (1 << 8)
 #define OPENAT_SEEN     (1 << 9)
-#define OPENAT2_SEEN    (1 << 10)   
+#define OPENAT2_SEEN    (1 << 10) 
+#define PTMX_SEEN       (1 << 11)  
 
 // stages
 
