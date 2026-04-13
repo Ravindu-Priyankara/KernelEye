@@ -63,7 +63,6 @@ int BPF_PROG(trace_socket_create, int family, int type, int protocol, int kern){
 
     // assign state values
     ke_state->last_time = sock_ts;
-    ADVANCE_STAGE(ke_state->stage, STAGE_SOCKET);
     // first socket creation for add score and flag
     if(!(ke_state->flags & SOCKET_SEEN)){
         ke_state->flags |= SOCKET_SEEN;

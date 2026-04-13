@@ -84,7 +84,6 @@ int BPF_KRETPROBE(dup_exit){
     *       2. newfd <= 2 {0,1,2}
     */
     if(conn_event->fd == oldfd && newfd <= 2){
-        ADVANCE_STAGE(ke_state->stage, STAGE_REDIRECTS);
         ke_state->score += 40;
     }
 
