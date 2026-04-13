@@ -39,7 +39,7 @@ int openat_handler(struct trace_event_raw_sys_enter *ctx){
     // use scratchpad for copy filename
     ret = bpf_probe_read_user_str(scratch_buf->buffer, sizeof(scratch_buf->buffer), (void *)ctx->args[1]);
     if(ret < 0){
-        scratch_buf->buffer[0] = "\0"; //unknown
+        scratch_buf->buffer[0] = '\0'; //unknown
         return 0;
     }
 
