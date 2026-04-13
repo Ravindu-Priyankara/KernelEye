@@ -21,5 +21,6 @@
 #include "../probes/dup3_tracker.bpf.h"
 #include "../probes/open_tracker.bpf.h"
 #include "../probes/openat_tracker.bpf.h"
+#include "../probes/openat2_tracker.bpf.h"
 
 char LICENSE[] SEC("license") = "GPL";
