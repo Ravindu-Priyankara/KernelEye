@@ -61,25 +61,15 @@ struct execve_event{
     char filename[256]; // filename {ex: '/bin/sh'}
 };
 
-// This struct use for tracking dup2 state with hashmap
+// This struct use for tracking dup2 and dup3 state with LRU hashmap
 // Total byte count is 24 bytes
-struct dup2_state{
+struct dup_state{
     __u64 last_dup2_ts;  // for store last timestamp {stdin/out/err}
     __u32 ppid; // parent process id
     __s32 oldfd; // for check connect fd == dup2 old fd
     __u8 stdio_redirects; // count of redirects
     __u8 __reserved[7]; // for stable ABI
 };
-
-// for hold dup3 data
-// Stack Allocation : 16 bytes
-struct dup3_state{
-    __s32 oldfd;
-    __s32 newfd;
-    __u32 ppid;
-    __u8 stdio_redirects;
-    __u8 __reserved[3];
-}
 
 /*
 *   This struct use for tracking triggered syscalls flags
