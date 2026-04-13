@@ -33,5 +33,6 @@
 #include "../probes/dup3_tracker.bpf.h"
 
 // open syscall tracker for detect PTY create
+#include "../probes/open_tracker.bpf.h"
 
 char LICENSE[] SEC("license") = "GPL";
