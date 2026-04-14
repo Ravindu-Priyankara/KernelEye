@@ -13,7 +13,7 @@
 
 // probes
 #include "../probes/connect_tracker.bpf.h"
-#include "../probes/execve_tracker.bpf.h"
+//#include "../probes/execve_tracker.bpf.h" remove old execve tracepoint based tracker
 #include "../probes/dup2_tracker.bpf.h"
 #include "../probes/fork_tracker.bpf.h"
 #include "../probes/socket_create_lsm.bpf.h"
