@@ -30,6 +30,8 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     */
     __u64 *parent_cid;
 
+    struct ke_ctx_state *ke_state;
+
     /*
     *   Developer Note:
     *       - shedule tracepoints does not use args[0-6].
@@ -69,6 +71,20 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     *           - We don't care if it's overwritten because CID must stay consistent.
     */
     bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_ANY);
+
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    if(!ke_state){
+        struct ke_ctx_state ke_new_state = {};
+
+        bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST);
+        ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+        if(!ke_state) return 0;
+    }
+
+    if(!(ke_state->flags & FORK_SEEN)){
+        ke_state->flags |= FORK_SEEN;
+        ke_state->score += 10;
+    }
 
     return 0;
 }
