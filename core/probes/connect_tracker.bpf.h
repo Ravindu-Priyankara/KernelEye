@@ -115,35 +115,6 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // Check that there was data of `struct sockaddr *uservaddr`
   if(!ctx->args[1]) return 0;
 
-  // Read the generic pointer safely
-  ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
-  if(ret < 0)return 0;
-
-  /*
-  * get the socket family {IPV4/IPV6}
-  *
-  * Defined in:
-  *     - helpers/connect_helpers.h
-  *
-  * Why?
-  *     - for copy ip address, we should define the socket struct according to the socket family.
-  */
-  ret = get_socket_family(&sa);
-  if(ret == 0) return 0;
-
-  /*
-  * According to socket family, This helps to get IPV4 or IPV6 data
-  *
-  * Defined in:
-  *   - helpers/connect_helpers.h
-  * 
-  * Purpose:
-  *   - parse_socket_address helper task is parse pointers to correct helpers for assign socket data.
-  *   - After that, we have the IP and port.
-  */
-  ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
-  if(ret < 0) return 0;
-
   /*
   * Defined in:
   *   - helpers/common_helpers.h
@@ -152,8 +123,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ppid = get_ppid(); // parent process id
   net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
 
-
-  //sanitize the data
+    //sanitize the data
   /*
   * Sanitize the pid and ppid.
   *
@@ -191,12 +161,64 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   }
 
-  /*
-  * Assumption:
-  *   - Attacker can fake connect first and real one later.
-  */
-  ke_state->flags |= CONNECT_SEEN;
   ke_state->last_time = net_ts;
+  // check there was a connect flag
+  if(!(ke_state->flags & CONNECT_SEEN)){
+    ke_state->flags |= CONNECT_SEEN;
+    ke_state->score += 10;
+  }
+
+  // Read the generic pointer safely
+  ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
+  if(ret < 0)return 0;
+
+  /*
+  * get the socket family {IPV4/IPV6}
+  *
+  * Defined in:
+  *     - helpers/connect_helpers.h
+  *
+  * Why?
+  *     - for copy ip address, we should define the socket struct according to the socket family.
+  */
+  ret = get_socket_family(&sa);
+  if(ret == 0) return 0;
+
+  /*
+  * According to socket family, This helps to get IPV4 or IPV6 data
+  *
+  * Defined in:
+  *   - helpers/connect_helpers.h
+  * 
+  * Purpose:
+  *   - parse_socket_address helper task is parse pointers to correct helpers for assign socket data.
+  *   - After that, we have the IP and port.
+  */
+  ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
+  if(ret < 0) return 0;
+
+  // scoring
+
+  // for localhost
+  if(event.addr.family == FAMILY_IPV4 && event.addr.ipv4 == LOOPBACK_IPV4)
+  ke_state->score += 5;
+
+  // private ip
+  if(event.addr.family == FAMILY_IPV4){
+    if(!is_private_ipv4(event.addr.ipv4) && event.addr.ipv4 != LOOPBACK_IPV4){
+      ke_state->score += 20;
+    }
+  }
+
+  // suspicious ports
+  if(is_suspicious_port(event.addr.port)) ke_state->score += 25;
+
+  // ephemeral port
+  if(is_ephemeral_port(event.addr.port)){
+    if(ke_state->score > 30){
+      ke_state->score += 10;
+    }
+  }
 
   /*
   * Save the connect struct via connect hash map
