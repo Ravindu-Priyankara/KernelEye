@@ -174,19 +174,21 @@ int dup2_enter_handler(
     }
 
     //fd redirects
-    if(dup2_state->stdio_redirects >= 2){
+    if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
+        ke_state->flags |= FD_REDERECTS_SEEN;
         ke_state->score += 20;
     }
 
     // we need check is there connect to internet befor go further
-    if(!(ke_state->flags |= SOCKET_SEEN)) return 0;
+    if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
     struct connect_event *connect_event;
 
     connect_event = bpf_map_lookup_elem(&connect_map, &cid);
     if(!connect_event) return 0;
 
-    if(connect_event->fd == old_fd){
+    if(connect_event->fd == old_fd && !(ke_state->flags & SOCKET_MATCH_SEEN)){
+        ke_state->flags |= SOCKET_MATCH_SEEN;
         ke_state->score += 10;
     }
 
