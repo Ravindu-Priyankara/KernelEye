@@ -83,7 +83,8 @@ int BPF_KRETPROBE(dup_exit){
     *       1. connect fd should equal to dup old fd
     *       2. newfd <= 2 {0,1,2}
     */
-    if(conn_event->fd == oldfd && newfd <= 2){
+    if(conn_event->fd == oldfd && newfd <= 2 && !(ke_state->flags & SOCKET_MATCH_SEEN)){
+        ke_state->flags |= SOCKET_MATCH_SEEN;
         ke_state->score += 40;
     }
 
