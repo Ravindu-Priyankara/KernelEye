@@ -149,7 +149,6 @@ int dup2_enter_handler(
 
     // update the map
     ke_state->last_time = dup2_ts;
-    ke_state->flags |= DUP2_SEEN;
 
     // check dup2 map data availability
     dup2_state = bpf_map_lookup_elem(&dup_map, &pid);
@@ -168,6 +167,28 @@ int dup2_enter_handler(
     dup2_state->ppid = ppid;
     dup2_state->oldfd = old_fd;
     dup2_state->stdio_redirects++;
+
+    if(!(ke_state->flags & DUP2_SEEN)){
+        ke_state->flags |= DUP2_SEEN;
+        ke_state->score += 10;
+    }
+
+    //fd redirects
+    if(dup2_state->stdio_redirects >= 2){
+        ke_state->score += 20;
+    }
+
+    // we need check is there connect to internet befor go further
+    if(!(ke_state->flags |= SOCKET_SEEN)) return 0;
+
+    struct connect_event *connect_event;
+
+    connect_event = bpf_map_lookup_elem(&connect_map, &cid);
+    if(!conn_event) return 0;
+
+    if(conn_event->fd == old_fd){
+        ke_state->score += 10;
+    }
 
     // for debugging
     #ifdef DEBUG_MODE
