@@ -27,6 +27,10 @@ typedef enum {
 #define PTMX_SEEN       (1 << 11)
 #define FD_REDERECTS_SEEN (1 << 12)  
 #define SOCKET_MATCH_SEEN (1 << 13)
+#define LOOPBACK_IPV4_SEEN (1 << 14)
+#define PRIVATE_IP_SEEN (1 << 15)
+#define SUSPICIOUS_PORT_SEEN (1 << 16)
+#define EPHEMERAL_PORT_SEEN (1 << 17)
 
 // stages
 
