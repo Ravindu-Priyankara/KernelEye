@@ -69,7 +69,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     // check redirects
     if(dup3_state->stdio_redirects >= 2){
-        ke_state->score += 40;
+        ke_state->score += 25;
     }
 
     return 0;
