@@ -184,9 +184,9 @@ int dup2_enter_handler(
     struct connect_event *connect_event;
 
     connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-    if(!conn_event) return 0;
+    if(!connect_event) return 0;
 
-    if(conn_event->fd == old_fd){
+    if(connect_event->fd == old_fd){
         ke_state->score += 10;
     }
 
