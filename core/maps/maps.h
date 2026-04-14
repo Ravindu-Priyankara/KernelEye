@@ -28,14 +28,6 @@
 *********** Hash Maps **********
 ********************************/
 
-// This hashmap used for track outboud connection events
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);    // map type
-    __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
-    __type(key, __u64); // key = cid
-    __type(value, struct connect_event);   // This struct hold the all connect events data
-}connect_map SEC(".maps");  // hashmap name
-
 // This hashmap used for track execve events {permanent struct}
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);   // map type
@@ -91,6 +83,14 @@ struct {
     __type(key, __u64);
     __type(value, struct dup_state);
 } dup_map SEC(".maps");
+
+// This LRU hashmap used for track outboud connection events
+struct {
+    __uint(type, BPF_MAP_TYPE_LRU_HASH);    // map type
+    __uint(max_entries, HASHMAP_SIZE);  // hashmap maximum entries
+    __type(key, __u64); // key = cid
+    __type(value, struct connect_event);   // This struct hold the all connect events data
+}connect_map SEC(".maps");  // LRU hashmap name
 
 /****************************************
 *********** Per CPU Array Maps **********
