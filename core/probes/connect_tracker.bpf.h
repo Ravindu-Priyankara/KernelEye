@@ -216,7 +216,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // suspicious ports
   if(!(ke_state->flags & SUSPICIOUS_PORT_SEEN)){
     if(is_suspicious_port(event.addr.port)) {
-      ke_state->flags |= SUSPICIOUS_PORT;
+      ke_state->flags |= SUSPICIOUS_PORT_SEEN;
       ke_state->score += 25;
     }
   }
