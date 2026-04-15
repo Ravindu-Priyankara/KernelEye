@@ -7,10 +7,12 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     __u32 pid;
 
     struct ke_ctx_state *ke_state;
-    const char *filename = BPF_CORE_READ(bprm, filename);
+    char filename[64];
+
+    bpf_probe_read_kernel_str(filename, sizeof(filename), BPF_CORE_READ(bprm, filename));
 
     // check filename
-    if (!filename || filename[9] == 0) return 0; 
+    if (filename[0] == 0) return 0; 
 
     pid = get_tgid();
     execve_ts = get_trigger_time();
