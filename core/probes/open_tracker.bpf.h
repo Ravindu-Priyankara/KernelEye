@@ -55,8 +55,6 @@ int open_handler(struct trace_event_raw_sys_enter *ctx){
         }
     }
 
-    // for testing
-    print_flags_and_score(cid, ke_state->score, ke_state->flags);
 
     // for debugging
     #ifdef DEBUG_MODE
