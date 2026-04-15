@@ -26,6 +26,7 @@ int openat2_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, openat2_ts);
     // set openat2 flag
     ke_state->last_time = openat2_ts;
     if(!(ke_state->flags & OPENAT2_SEEN)){

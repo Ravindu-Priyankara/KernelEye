@@ -61,6 +61,7 @@ int BPF_PROG(trace_socket_create, int family, int type, int protocol, int kern){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, sock_ts);
     // assign state values
     ke_state->last_time = sock_ts;
     // first socket creation for add score and flag

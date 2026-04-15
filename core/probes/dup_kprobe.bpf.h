@@ -30,6 +30,7 @@ int BPF_KPROBE(dup_enter, unsigned int oldfd){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, dup_ts);
     // Update the last time, and it helps to map cleanup.
     ke_state->last_time = dup_ts;
     // Mark the flag

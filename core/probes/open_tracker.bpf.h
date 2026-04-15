@@ -26,6 +26,7 @@ int open_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, open_ts);
     ke_state->last_time = open_ts;
     if(!(ke_state->flags & OPEN_SEEN)){
         ke_state->flags |= OPEN_SEEN;

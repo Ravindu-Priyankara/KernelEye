@@ -37,6 +37,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     }
 
+    apply_decay(ke_state, dup3_ts);
     // cut off the cost
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 

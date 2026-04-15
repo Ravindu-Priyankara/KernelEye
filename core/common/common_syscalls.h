@@ -1,5 +1,8 @@
 #pragma once
 
+#define DECAY_INTERVAL_NS  5000000000ULL  // 5 seconds
+#define DECAY_STEP         2              // subtract 2 points per interval
+
 // used for request types identification
 typedef enum {
     OTHER = 0,

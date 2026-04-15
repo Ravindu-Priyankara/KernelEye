@@ -30,6 +30,7 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, execve_ts);
     ke_state->last_time = execve_ts;
     if(!(ke_state->flags & EXECVE_SEEN)){
         ke_state->flags |= EXECVE_SEEN;

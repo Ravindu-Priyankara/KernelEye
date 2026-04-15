@@ -161,6 +161,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   }
 
+  apply_decay(ke_state, net_ts);
   ke_state->last_time = net_ts;
   // check there was a connect flag
   if(!(ke_state->flags & CONNECT_SEEN)){

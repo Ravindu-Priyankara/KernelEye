@@ -251,3 +251,24 @@ static __always_inline long delete_map_elements(void *map, const void *key){
     long ret = bpf_map_delete_elem(map, key);
     return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
 }
+
+static __always_inline void apply_decay(struct ke_ctx_state *st, __u64 now)
+{
+    if (now - st->last_decay_ts < DECAY_INTERVAL_NS)
+        return;
+
+    __u64 steps = (now - st->last_decay_ts) / DECAY_INTERVAL_NS;
+
+    // prevent huge jumps
+    if (steps > 10)
+        steps = 10;
+
+    int decay = steps * DECAY_STEP;
+
+    if (st->score > decay)
+        st->score -= decay;
+    else
+        st->score = 0;
+
+    st->last_decay_ts = now;
+}

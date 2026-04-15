@@ -147,6 +147,7 @@ int dup2_enter_handler(
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, dup2_ts);
     // we need check is there connect to internet befor go further
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 

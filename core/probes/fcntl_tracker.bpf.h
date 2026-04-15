@@ -31,6 +31,7 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
+    apply_decay(ke_state, fcntl_ts);
     ke_state->last_time = fcntl_ts;
     if(!(ke_state->flags & FCNTL_SEEN)){
         ke_state->flags |= FCNTL_SEEN;
