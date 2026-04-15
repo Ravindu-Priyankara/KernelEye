@@ -239,6 +239,9 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = update_map_element(&connect_map, &cid, &event, BPF_ANY);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
+      // for testing
+    print_flags_and_score(cid, ke_state->score, ke_state->flags);
+
   // for debugging
   #ifdef DEBUG_MODE
       debug_counter(1); // increment debug counter

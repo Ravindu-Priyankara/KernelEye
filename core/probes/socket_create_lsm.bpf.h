@@ -69,8 +69,12 @@ int BPF_PROG(trace_socket_create, int family, int type, int protocol, int kern){
         ke_state->score += 5; // weak signal
     }
 
+    // for testing
+    print_flags_and_score(cid, ke_state->score, ke_state->flags);
+
+    // for debugging
     #ifdef DEBUG_MODE
-        debug_counter(1);
+        debug_counter(1); // increment debug counter
     #endif
     
     // future: add socket rate tracking

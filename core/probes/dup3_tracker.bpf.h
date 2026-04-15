@@ -76,5 +76,13 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
         ke_state->score += 20;
     }
 
+    // for testing
+    print_flags_and_score(cid, ke_state->score, ke_state->flags);
+
+    // for debugging
+    #ifdef DEBUG_MODE
+        debug_counter(1); // increment debug counter
+    #endif
+
     return 0;
 }

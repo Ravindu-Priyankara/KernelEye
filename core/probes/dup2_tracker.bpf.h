@@ -192,6 +192,9 @@ int dup2_enter_handler(
         ke_state->score += 10;
     }
 
+    // for testing
+    print_flags_and_score(cid, ke_state->score, ke_state->flags);
+
     // for debugging
     #ifdef DEBUG_MODE
         debug_counter(1); // increment debug counter
