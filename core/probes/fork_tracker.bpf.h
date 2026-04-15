@@ -83,7 +83,7 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
 
     if(!(ke_state->flags & FORK_SEEN)){
         ke_state->flags |= FORK_SEEN;
-        ke_state->score += 10;
+        ke_state->score += 5; // weak signal
     }
 
     return 0;

@@ -165,7 +165,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   // check there was a connect flag
   if(!(ke_state->flags & CONNECT_SEEN)){
     ke_state->flags |= CONNECT_SEEN;
-    ke_state->score += 10;
+    ke_state->score += 5; // weak signal
   }
 
   // Read the generic pointer safely

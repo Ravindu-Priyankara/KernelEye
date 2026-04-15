@@ -66,7 +66,7 @@ int BPF_PROG(trace_socket_create, int family, int type, int protocol, int kern){
     // first socket creation for add score and flag
     if(!(ke_state->flags & SOCKET_SEEN)){
         ke_state->flags |= SOCKET_SEEN;
-        ke_state->score += 10;
+        ke_state->score += 5; // weak signal
     }
 
     #ifdef DEBUG_MODE

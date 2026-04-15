@@ -33,7 +33,10 @@ int BPF_KPROBE(dup_enter, unsigned int oldfd){
     // Update the last time, and it helps to map cleanup.
     ke_state->last_time = dup_ts;
     // Mark the flag
-    ke_state->flags |= DUP_SEEN;
+    if(!(ke_state->flags & DUP_SEEN)){
+        ke_state->flags |= DUP_SEEN;
+        ke_state->score += 5; // weak signal
+    }
 
     // update the map with oldfd
     bpf_map_update_elem(&dup_temp_map, &cid, &fd_copy, BPF_ANY);
@@ -85,7 +88,7 @@ int BPF_KRETPROBE(dup_exit){
     */
     if(conn_event->fd == oldfd && newfd <= 2 && !(ke_state->flags & SOCKET_MATCH_SEEN)){
         ke_state->flags |= SOCKET_MATCH_SEEN;
-        ke_state->score += 40;
+        ke_state->score += 20; // strong signal {connect + dup with fd trick}
     }
 
     // for cleanup the maps

@@ -38,7 +38,10 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     }
 
     ke_state->last_time = dup3_ts;
-    ke_state->flags |= DUP3_SEEN;
+    if(!(ke_state->flags & DUP3_SEEN)){
+        ke_state->flags |= DUP3_SEEN;
+        ke_state->score += 5; // weak signal
+    }
 
     // extract dup3 state data
     dup3_state = bpf_map_lookup_elem(&dup_map, &cid);
@@ -70,7 +73,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     // check redirects
     if(dup3_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
         ke_state->flags |= FD_REDERECTS_SEEN;
-        ke_state->score += 25;
+        ke_state->score += 20;
     }
 
     return 0;
