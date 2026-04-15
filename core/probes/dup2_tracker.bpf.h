@@ -151,7 +151,7 @@ int dup2_enter_handler(
     ke_state->last_time = dup2_ts;
 
     // check dup2 map data availability
-    dup2_state = bpf_map_lookup_elem(&dup_map, &pid);
+    dup2_state = bpf_map_lookup_elem(&dup_map, &cid);
     if(!dup2_state){
         // stack Allocation: 24 bytes
         struct dup_state new_dup2_state = {};
@@ -173,10 +173,16 @@ int dup2_enter_handler(
         ke_state->score += 5; //weak signal
     }
 
-    //fd redirects
+    //fd redirectsf
     if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
+        if((ke_state->flage & SOCKET_SEEN) && (ke_state->flags & EXECVE_SEEN)){
+            ke_state->score += 50; // strong signal
+        }else{
+            ke_state->score += 30;
+        }
+
         ke_state->flags |= FD_REDERECTS_SEEN;
-        ke_state->score += 40; // strong signal
+
     }
 
     // we need check is there connect to internet befor go further
@@ -189,7 +195,7 @@ int dup2_enter_handler(
 
     if(connect_event->fd == old_fd && !(ke_state->flags & SOCKET_MATCH_SEEN)){
         ke_state->flags |= SOCKET_MATCH_SEEN;
-        ke_state->score += 10;
+        ke_state->score += 20;
     }
 
     // for debugging
