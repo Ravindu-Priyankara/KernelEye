@@ -7,6 +7,10 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     __u32 pid;
 
     struct ke_ctx_state *ke_state;
+    const char *filename = BPF_CORE_READ(bprm, filename);
+
+    // check filename
+    if (!filename || filename[9] == 0) return 0; 
 
     pid = get_tgid();
     execve_ts = get_trigger_time();
@@ -28,6 +32,28 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     if(!(ke_state->flags & EXECVE_SEEN)){
         ke_state->flags |= EXECVE_SEEN;
         ke_state->score += 5;
+    }
+
+    const char *bin = filename + 9;
+    if (filename[0]=='/' && filename[1]=='u' && filename[2]=='s' && 
+        filename[3]=='r' && filename[4]=='/' && filename[5]=='b' &&
+        filename[6]=='i' && filename[7]=='n' && filename[8]=='/') {
+
+        switch(bin[0]){ 
+            case 'p':{ // python | perl | php
+                if(!(ke_state->flags & SUSPICIOUS_FILENAME_SEEN) && (ke_state->flags & CONNECT_SEEN)){
+                    ke_state->flags |= SUSPICIOUS_FILENAME_SEEN;
+                    ke_state->score += 10; 
+                }
+
+                if(!(ke_state->flags & SUSPICIOUS_FILENAME_SEEN) && (ke_state->flags & CONNECT_SEEN) && (ke_state->flags & FD_REDERECTS_SEEN)){
+                    ke_state->flags |= SUSPICIOUS_FILENAME_SEEN;
+                    ke_state->score += 20; 
+                }
+
+                break;
+            }
+        }
     }
 
     #ifdef DEBUG_MODE
