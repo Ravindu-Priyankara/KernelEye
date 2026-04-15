@@ -126,7 +126,7 @@ int dup2_enter_handler(
 
     // Only track stdin/out/err, Negative FDs are ignored for safety.
     // After converting to signed, we should also check negative cases.
-    if(fd_new > 2 || fd_new < 0) return 0;
+    if(fd_new < 0 || fd_new > 2) return 0;
 
     //sanitize the data
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
@@ -146,6 +146,9 @@ int dup2_enter_handler(
         ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
         if(!ke_state) return 0;
     }
+
+    // we need check is there connect to internet befor go further
+    if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
     // update the map
     ke_state->last_time = dup2_ts;
@@ -175,27 +178,25 @@ int dup2_enter_handler(
 
     //fd redirectsf
     if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
-        if((ke_state->flage & SOCKET_SEEN) && (ke_state->flags & EXECVE_SEEN)){
-            ke_state->score += 50; // strong signal
-        }else{
-            ke_state->score += 30;
-        }
-
         ke_state->flags |= FD_REDERECTS_SEEN;
-
+        if(ke_state->flags & EXECVE_SEEN){
+            ke_state->score += 80; // strong signal {full chain}
+        }else{
+            ke_state->score += 50; // weak but suspicious
+        }
     }
-
-    // we need check is there connect to internet befor go further
-    if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
     struct connect_event *connect_event;
 
-    connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-    if(!connect_event) return 0;
+    if(!(ke_state->flage & SOCKET_MATCH_SEEN))
+    {
+        connect_event = bpf_map_lookup_elem(&connect_map, &cid);
+        if(!connect_event) return 0;
 
-    if(connect_event->fd == old_fd && !(ke_state->flags & SOCKET_MATCH_SEEN)){
-        ke_state->flags |= SOCKET_MATCH_SEEN;
-        ke_state->score += 20;
+        if(connect_event->fd == old_fd){
+            ke_state->flags |= SOCKET_MATCH_SEEN;
+            ke_state->score += 20;
+        }
     }
 
     // for debugging

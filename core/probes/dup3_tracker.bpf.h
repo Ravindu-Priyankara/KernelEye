@@ -37,10 +37,13 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     }
 
+    // cut off the cost
+    if(!(ke_state->flags & SOCKET_SEEN)) return 0;
+
     ke_state->last_time = dup3_ts;
     if(!(ke_state->flags & DUP3_SEEN)){
         ke_state->flags |= DUP3_SEEN;
-        ke_state->score += 5; // weak signal
+        ke_state->score += 7; // weak signal
     }
 
     // extract dup3 state data
@@ -60,20 +63,28 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     dup3_state->last_dup_ts = dup3_ts;
     dup3_state->stdio_redirects++;
 
-    // openpty or forkpty based reverse shells not trigger this check
-    connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-    if(connect_event){
-        // check sock fd == dup3 old fd
-        if(connect_event->fd == old_fd && !(ke_state->flags & SOCKET_MATCH_SEEN)){
-            ke_state->flags |= SOCKET_MATCH_SEEN;
-            ke_state->score += 10;
-        }
-    }
-
     // check redirects
     if(dup3_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
         ke_state->flags |= FD_REDERECTS_SEEN;
-        ke_state->score += 20;
+
+        if(ke_state->flags & EXECVE_SEEN){
+            ke_state->score += 80;
+        }else{
+            ke_state->score += 50;
+        }
+    }
+
+    if(!(ke_state->flags & SOCKET_MATCH_SEEN))
+    {
+        // openpty or forkpty based reverse shells not trigger this check
+        connect_event = bpf_map_lookup_elem(&connect_map, &cid);
+        if(connect_event){
+            // check sock fd == dup3 old fd
+            if(connect_event->fd == old_fd){
+                ke_state->flags |= SOCKET_MATCH_SEEN;
+                ke_state->score += 20;
+            }
+        }
     }
 
     // for debugging
