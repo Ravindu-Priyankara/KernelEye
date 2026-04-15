@@ -176,7 +176,7 @@ int dup2_enter_handler(
     //fd redirects
     if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
         ke_state->flags |= FD_REDERECTS_SEEN;
-        ke_state->score += 20; // strong signal
+        ke_state->score += 40; // strong signal
     }
 
     // we need check is there connect to internet befor go further
