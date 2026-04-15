@@ -59,6 +59,9 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
         }
     }
 
+    // for test
+    print_flags_and_score(cid, ke_state->score, ke_state->flags);
+
     #ifdef DEBUG_MODE
         debug_counter(1);
     #endif
