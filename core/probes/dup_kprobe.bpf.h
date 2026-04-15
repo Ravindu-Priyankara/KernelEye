@@ -91,9 +91,6 @@ int BPF_KRETPROBE(dup_exit){
         ke_state->score += 20; // strong signal {connect + dup with fd trick}
     }
 
-        // for testing
-    print_flags_and_score(cid, ke_state->score, ke_state->flags);
-
     // for cleanup the maps
     cleanup:
         bpf_map_delete_elem(&dup_temp_map, &cid);
