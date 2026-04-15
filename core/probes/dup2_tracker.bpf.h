@@ -188,7 +188,7 @@ int dup2_enter_handler(
 
     struct connect_event *connect_event;
 
-    if(!(ke_state->flage & SOCKET_MATCH_SEEN))
+    if(!(ke_state->flags & SOCKET_MATCH_SEEN))
     {
         connect_event = bpf_map_lookup_elem(&connect_map, &cid);
         if(!connect_event) return 0;
