@@ -41,21 +41,21 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
     if(cmd == F_DUPFD || cmd == F_DUPFD_CLOEXEC){
         ke_state->fd_mutation_count++; // increment the fd counter
 
-        if(!(ke_state->flags & FD_DUPLICATION_SEEN) && ((ke_state->flags & SOCKET_SEEN)||(ke_state->flags & CONNECT_SEEN))){
+        if(!(ke_state->flags & FD_DUPLICATION_SEEN) && (ke_state->flags & CONNECT_SEEN)){
             ke_state->flags |= FD_DUPLICATION_SEEN;
-            ke_state->score += 30;
+            ke_state->score += 10;
         }
 
         // STDIO hijack suspicion
         if(!(ke_state->flags & STDIO_HIJACK_SEEN) && arg <= 2){
             ke_state->flags |= STDIO_HIJACK_SEEN;
-            ke_state->score += 40; // stdin/stdout/stderr takeover risk
+            ke_state->score += 10; // stdin/stdout/stderr takeover risk
         }
     }
 
-    if (((ke_state->flags & SOCKET_SEEN) || (ke_state->flags & CONNECT_SEEN)) && ke_state->fd_mutation_count > 0 && !(ke_state->flags & FD_REWIRING_SEEN)) {
+    if ((ke_state->flags & CONNECT_SEEN) && ke_state->fd_mutation_count > 0 && !(ke_state->flags & FD_REWIRING_SEEN)) {
         ke_state->flags |= FD_REWIRING_SEEN;
-        ke_state->score += 10; // small score increment
+        ke_state->score += 5; // small score increment
     }
 
     return 0;
