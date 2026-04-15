@@ -12,6 +12,7 @@ typedef enum {
 #define OTHER 0
 /*
 *   The connect syscall can be bypassed. So we decided to track the socket also.
+*   The order will be changed during the code cleaning stage.
 */
 #define SOCKET_SEEN     (1 << 0)    // 0001
 #define CONNECT_SEEN    (1 << 1)    // 0010
