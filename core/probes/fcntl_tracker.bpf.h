@@ -31,13 +31,11 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
-    apply_decay(ke_state, fcntl_ts);
     if(!(ke_stage->flags & SOCKET_SEEN)) return 0;
     
     ke_state->last_time = fcntl_ts;
     if(!(ke_state->flags & FCNTL_SEEN)){
         ke_state->flags |= FCNTL_SEEN;
-        ke_state->score += 5; // weak signal
     }
 
     // fd duplication attempt
@@ -46,19 +44,16 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
 
         if(!(ke_state->flags & FD_DUPLICATION_SEEN) && (ke_state->flags & CONNECT_SEEN)){
             ke_state->flags |= FD_DUPLICATION_SEEN;
-            ke_state->score += 10;
         }
 
         // STDIO hijack suspicion
         if(!(ke_state->flags & STDIO_HIJACK_SEEN) && arg <= 2){
             ke_state->flags |= STDIO_HIJACK_SEEN;
-            ke_state->score += 10; // stdin/stdout/stderr takeover risk
         }
     }
 
     if ((ke_state->flags & CONNECT_SEEN) && ke_state->fd_mutation_count > 0 && !(ke_state->flags & FD_REWIRING_SEEN)) {
         ke_state->flags |= FD_REWIRING_SEEN;
-        ke_state->score += 5; // small score increment
     }
 
     return 0;

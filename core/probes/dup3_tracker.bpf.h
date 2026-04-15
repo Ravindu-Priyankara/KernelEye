@@ -36,8 +36,6 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
 
     }
-
-    apply_decay(ke_state, dup3_ts);
     // cut off the cost
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
@@ -67,12 +65,6 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     // check redirects
     if(dup3_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
         ke_state->flags |= FD_REDERECTS_SEEN;
-
-        if(ke_state->flags & EXECVE_SEEN){
-            ke_state->score += 80;
-        }else{
-            ke_state->score += 50;
-        }
     }
 
     if(!(ke_state->flags & SOCKET_MATCH_SEEN))
@@ -83,7 +75,6 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
             // check sock fd == dup3 old fd
             if(connect_event->fd == old_fd){
                 ke_state->flags |= SOCKET_MATCH_SEEN;
-                ke_state->score += 20;
             }
         }
     }

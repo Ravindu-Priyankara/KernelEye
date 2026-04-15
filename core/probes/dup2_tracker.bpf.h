@@ -147,7 +147,6 @@ int dup2_enter_handler(
         if(!ke_state) return 0;
     }
 
-    apply_decay(ke_state, dup2_ts);
     // we need check is there connect to internet befor go further
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
@@ -174,17 +173,11 @@ int dup2_enter_handler(
 
     if(!(ke_state->flags & DUP2_SEEN)){
         ke_state->flags |= DUP2_SEEN;
-        ke_state->score += 5; //weak signal
     }
 
     //fd redirectsf
     if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
         ke_state->flags |= FD_REDERECTS_SEEN;
-        if(ke_state->flags & EXECVE_SEEN){
-            ke_state->score += 80; // strong signal {full chain}
-        }else{
-            ke_state->score += 50; // weak but suspicious
-        }
     }
 
     struct connect_event *connect_event;
@@ -196,7 +189,6 @@ int dup2_enter_handler(
 
         if(connect_event->fd == old_fd){
             ke_state->flags |= SOCKET_MATCH_SEEN;
-            ke_state->score += 20;
         }
     }
 

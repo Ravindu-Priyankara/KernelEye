@@ -26,7 +26,6 @@ int openat2_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
-    apply_decay(ke_state, openat2_ts);
     if(!(ke_state->flags & SOCKET_SEEN)) return 0; //filter early
     // set openat2 flag
     ke_state->last_time = openat2_ts;
@@ -54,7 +53,6 @@ int openat2_handler(struct trace_event_raw_sys_enter *ctx){
         // PTY creation signal
         if(__builtin_memcmp(scratch_buf->buffer, "/dev/ptmx", 10) == 0){
             ke_state->flags |= PTMX_SEEN;
-            ke_state->score += 10;
         }
     }
 
