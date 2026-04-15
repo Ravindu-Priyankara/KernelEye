@@ -25,5 +25,6 @@
 #include "../probes/open_tracker.bpf.h"
 #include "../probes/openat_tracker.bpf.h"
 #include "../probes/openat2_tracker.bpf.h"
+#include "../probes/bprm_check_security_lsm.bpf.h"
 
 char LICENSE[] SEC("license") = "GPL";
