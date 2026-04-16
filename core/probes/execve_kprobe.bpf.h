@@ -34,6 +34,8 @@ int execve_enter(struct pt_regs *ctx){
 
     // assign data to map
     ke_state->last_time = execve_ts;
+    // for debugging
+    print_flags_and_score(cid, ke_state->flags, ke_state->stage);
 
     // get the buffer
     sb = bpf_map_lookup_elem(&scratch_buf_map, &key);
@@ -109,9 +111,6 @@ int execve_enter(struct pt_regs *ctx){
             }
         }
     }
-
-    // for debugging
-    print_flags_and_score(cid, ke_state->flags, ke_state->stage);
 
     return 0;
 }
