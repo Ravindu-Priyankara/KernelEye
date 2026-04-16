@@ -1,11 +1,10 @@
 
 SEC("kprobe/__x64_sys_execve")
-int BPF_KPROBE(
-    execve_enter, 
-    const char *filename,
-    const char *const *argv,
-    const char *const *envp,
-){
+int execve_enter(struct pt_regs *ctx){
+
+    const char *filename = (const char *)PT_REGS_PARM1(ctx);
+    const char *const *argv = (const char *const *)PT_REGS_PARM2(ctx);
+    const char *const *envp = (const char *const *)PT_REGS_PARM3(ctx);
 
     __u64 cid;
     __u64 execve_ts;
@@ -102,9 +101,9 @@ int BPF_KPROBE(
         if(len > 0){
 
             if(
-                __builtin_memmem(sb->buffer, len, "/dev/tcp", 8) ||
-                __builtin_memmem(sb->buffer, len, "socket", 6) ||
-                __builtin_memmem(sb->buffer, len, "connect", 7)
+                ((sb->buffer[1] == 'd') && (sb->buffer[3] == 'v') && (sb->buffer[5] == 't') && (sb->buffer[7] == 'p')) || // /dev/tcp
+                ((sb->buffer[0] == 's') && (sb->buffer[3] == 'k')) || // socket 
+                ((sb->buffer[0] == 'c') && (sb->buffer[2] == 'n')) // connect
             ){
                 update_state(ke_state, NETWORK_INTENT_SEEN);
             }
