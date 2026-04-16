@@ -13,11 +13,19 @@ static inline void evaluate_stage(__u32 flags, __u16 *stage)
         ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
     }
 
-    // high risk
+    // high risk section
     if (
         (flags & CONNECT_SEEN) &&
         (flags & (DUP2_SEEN | DUP3_SEEN)) &&
         (flags & FD_REDERECTS_SEEN)
+    ){
+        ADVANCE_STAGE(stage, STAGE_HIGH_RISK);
+    }
+
+    // PTY-based shell (stealthy interactive shell)
+    if (
+        (flags & PTMX_SEEN) &&
+        (flags & (DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN))
     ){
         ADVANCE_STAGE(stage, STAGE_HIGH_RISK);
     }
