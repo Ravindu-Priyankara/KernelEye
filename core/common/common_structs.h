@@ -105,9 +105,7 @@ struct dup_state{
 */
 struct ke_ctx_state{
     __u64 last_time; // for cleanup{timeout}
-    __u64 last_decay_ts; // for decay over time
-    __u32 flags;    // bitmask flag for hold triggered flags{syscalls}
-    __u32 score;    // for score
+    __u64 flags;    // bitmask flag for hold triggered flags{syscalls}
     __u16 stage;    //{defined in common/common/syscalls.h}
     __u8 fd_mutation_count; // for fcntl
     __u8 __reserved[5];
@@ -207,8 +205,8 @@ struct scratch_buf{
 // connect_event must remain 40 bytes (aligned to 8)
 _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mismatch!");
 
-// context state must remain 32 bytes (aligned to 8)
-_Static_assert(sizeof(struct ke_ctx_state) == 32, "context state struct size mismatch!");
+// context state must remain 24 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_ctx_state) == 24, "context state struct size mismatch!");
 
 // ke_event_header must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
