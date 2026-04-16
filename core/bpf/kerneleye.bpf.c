@@ -17,7 +17,6 @@
 
 // probes
 #include "../probes/connect_tracker.bpf.h"
-//#include "../probes/execve_tracker.bpf.h" remove old execve tracepoint based tracker
 #include "../probes/dup2_tracker.bpf.h"
 #include "../probes/fork_tracker.bpf.h"
 #include "../probes/socket_create_lsm.bpf.h"
@@ -27,5 +26,7 @@
 #include "../probes/openat_tracker.bpf.h"
 #include "../probes/openat2_tracker.bpf.h"
 #include "../probes/bprm_check_security_lsm.bpf.h"
+#include "../probes/execve_kprobe.bpf.h"
+
 
 char LICENSE[] SEC("license") = "GPL";
