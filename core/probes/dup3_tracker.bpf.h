@@ -42,7 +42,6 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     ke_state->last_time = dup3_ts;
     if(!(ke_state->flags & DUP3_SEEN)){
         update_state(ke_state, DUP3_SEEN);
-        ke_state->score += 7; // weak signal
     }
 
     // extract dup3 state data
