@@ -1,4 +1,4 @@
-static inline void evaluate_stage(__u32 flags, __u8 *stage)
+static inline void evaluate_stage(__u32 flags, __u16 *stage)
 {
     // suspicious stage
     if (
