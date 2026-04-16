@@ -83,7 +83,7 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
 
     apply_decay(ke_state, get_trigger_time());
     if(!(ke_state->flags & FORK_SEEN)){
-        ke_state->flags |= FORK_SEEN;
+        update_state(ke_state, FORK_SEEN);
     }
 
 

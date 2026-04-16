@@ -164,7 +164,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ke_state->last_time = net_ts;
   // check there was a connect flag
   if(!(ke_state->flags & CONNECT_SEEN)){
-    ke_state->flags |= CONNECT_SEEN;
+    update_state(ke_state, CONNECT_SEEN);
   }
 
   // Read the generic pointer safely
@@ -200,26 +200,26 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
 
   // for localhost
   if(event.addr.family == FAMILY_IPV4 && event.addr.ipv4 == LOOPBACK_IPV4 && !(ke_state->flags & LOOPBACK_IPV4_SEEN)){
-    ke_state->flags |= LOOPBACK_IPV4_SEEN;
+    update_state(ke_state, LOOPBACK_IPV4_SEEN);
   }
 
   // private ip
   if(event.addr.family == FAMILY_IPV4 && !(ke_state->flags & PRIVATE_IP_SEEN)){
     if(!is_private_ipv4(event.addr.ipv4) && event.addr.ipv4 != LOOPBACK_IPV4){
-      ke_state->flags |= PRIVATE_IP_SEEN;
+      update_state(ke_state, PRIVATE_IP_SEEN);
     }
   }
 
   // suspicious ports
   if(!(ke_state->flags & SUSPICIOUS_PORT_SEEN)){
     if(is_suspicious_port(event.addr.port)) {
-      ke_state->flags |= SUSPICIOUS_PORT_SEEN;
+      update_state(ke_state, SUSPICIOUS_PORT_SEEN);
     }
   }
 
   // ephemeral port
   if(is_ephemeral_port(event.addr.port) && !(ke_state->flags & EPHEMERAL_PORT_SEEN)){
-    ke_state->flags |= EPHEMERAL_PORT_SEEN;
+    update_state(ke_state, EPHEMERAL_PORT_SEEN);
   }
 
   /*

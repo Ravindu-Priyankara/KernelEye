@@ -41,7 +41,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     ke_state->last_time = dup3_ts;
     if(!(ke_state->flags & DUP3_SEEN)){
-        ke_state->flags |= DUP3_SEEN;
+        update_state(ke_state, DUP3_SEEN);
         ke_state->score += 7; // weak signal
     }
 
@@ -64,7 +64,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     // check redirects
     if(dup3_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
-        ke_state->flags |= FD_REDERECTS_SEEN;
+        update_state(ke_state, FD_REDERECTS_SEEN);
     }
 
     if(!(ke_state->flags & SOCKET_MATCH_SEEN))
@@ -74,7 +74,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
         if(connect_event){
             // check sock fd == dup3 old fd
             if(connect_event->fd == old_fd){
-                ke_state->flags |= SOCKET_MATCH_SEEN;
+                update_state(ke_state, SOCKET_MATCH_SEEN);
             }
         }
     }

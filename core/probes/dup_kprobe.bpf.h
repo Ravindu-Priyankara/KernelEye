@@ -34,7 +34,7 @@ int BPF_KPROBE(dup_enter, unsigned int oldfd){
     ke_state->last_time = dup_ts;
     // Mark the flag
     if(!(ke_state->flags & DUP_SEEN)){
-        ke_state->flags |= DUP_SEEN;
+        update_state(ke_state, DUP_SEEN);
     }
 
     // update the map with oldfd
@@ -86,7 +86,7 @@ int BPF_KRETPROBE(dup_exit){
     *       2. newfd <= 2 {0,1,2}
     */
     if(conn_event->fd == oldfd && newfd <= 2 && !(ke_state->flags & SOCKET_MATCH_SEEN)){
-        ke_state->flags |= SOCKET_MATCH_SEEN;
+        update_state(ke_state, SOCKET_MATCH_SEEN);
     }
 
     // for cleanup the maps

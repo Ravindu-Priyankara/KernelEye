@@ -35,7 +35,7 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
     
     ke_state->last_time = fcntl_ts;
     if(!(ke_state->flags & FCNTL_SEEN)){
-        ke_state->flags |= FCNTL_SEEN;
+        update_state(ke_state, FCNTL_SEEN);
     }
 
     // fd duplication attempt
@@ -43,17 +43,17 @@ int fcntl_handler(struct trace_event_raw_sys_enter *ctx){
         ke_state->fd_mutation_count++; // increment the fd counter
 
         if(!(ke_state->flags & FD_DUPLICATION_SEEN) && (ke_state->flags & CONNECT_SEEN)){
-            ke_state->flags |= FD_DUPLICATION_SEEN;
+            update_state(ke_state, FD_DUPLICATION_SEEN);
         }
 
         // STDIO hijack suspicion
         if(!(ke_state->flags & STDIO_HIJACK_SEEN) && arg <= 2){
-            ke_state->flags |= STDIO_HIJACK_SEEN;
+            update_state(ke_state, STDIO_HIJACK_SEEN);
         }
     }
 
     if ((ke_state->flags & CONNECT_SEEN) && ke_state->fd_mutation_count > 0 && !(ke_state->flags & FD_REWIRING_SEEN)) {
-        ke_state->flags |= FD_REWIRING_SEEN;
+        update_state(ke_state, FD_REWIRING_SEEN);
     }
 
     return 0;

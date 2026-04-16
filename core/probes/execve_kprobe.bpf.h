@@ -50,7 +50,7 @@ int BPF_KPROBE(
             (sb->buffer[1] == 'h' && sb->buffer[2] == 'p') ||
             (sb->buffer[0] == 's' && sb->buffer[1] == 'h')
         ){
-            ke_state->flags |= INTERPRETER_REAL_SEEN;
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
         }
     }
 
@@ -70,7 +70,7 @@ int BPF_KPROBE(
                 (sb->buffer[1] == 'h' && sb->buffer[2] == 'p') ||
                 (sb->buffer[0] == 's' && sb->buffer[1] == 'h')
             ){
-                ke_state->flags |= INTERPRETER_ARGV_SEEN;
+                update_state(ke_state, INTERPRETER_ARGV_SEEN);
             }
         }
 
@@ -87,7 +87,7 @@ int BPF_KPROBE(
 
             // bash -i | python -c | perl -e
             if(sb->buffer[0] == '-' && ((sb->buffer[1] == 'c') || (sb->buffer[1] == 'i') || (sb->buffer[1] == 'e'))){
-                ke_state->flags |= SHELL_INLINE_SEEN;
+                update_state(ke_state, SHELL_INLINE_SEEN);
             }
         }
     }
@@ -106,7 +106,7 @@ int BPF_KPROBE(
                 __builtin_memmem(sb->buffer, len, "socket", 6) ||
                 __builtin_memmem(sb->buffer, len, "connect", 7)
             ){
-                ke_state->flags |= NETWORK_INTENT_SEEN;
+                update_state(ke_state, NETWORK_INTENT_SEEN);
             }
         }
     }

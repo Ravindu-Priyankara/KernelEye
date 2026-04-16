@@ -172,12 +172,12 @@ int dup2_enter_handler(
     dup2_state->stdio_redirects++;
 
     if(!(ke_state->flags & DUP2_SEEN)){
-        ke_state->flags |= DUP2_SEEN;
+        update_state(ke_state, DUP2_SEEN);
     }
 
     //fd redirectsf
     if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
-        ke_state->flags |= FD_REDERECTS_SEEN;
+        update_state(ke_state, FD_REDERECTS_SEEN);
     }
 
     struct connect_event *connect_event;
@@ -188,7 +188,7 @@ int dup2_enter_handler(
         if(!connect_event) return 0;
 
         if(connect_event->fd == old_fd){
-            ke_state->flags |= SOCKET_MATCH_SEEN;
+            update_state(ke_state, SOCKET_MATCH_SEEN);
         }
     }
 
