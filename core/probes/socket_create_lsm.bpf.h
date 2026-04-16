@@ -34,6 +34,8 @@ int BPF_PROG(trace_socket_create, int family, int type, int protocol, int kern){
     */
     if(kern) return 0;
 
+    if(family != AF_INET && family != AF_INET6) return 0;
+
     // pid handling
     pid = get_tgid();
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return -EPERM;
