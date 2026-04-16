@@ -111,5 +111,8 @@ int BPF_KPROBE(
         }
     }
 
+    // for debugging
+    print_flags_and_score(cid, ke_state->flags, ke_state->stage);
+
     return 0;
 }
