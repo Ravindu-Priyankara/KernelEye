@@ -8,11 +8,8 @@ static inline void evaluate_stage(__u32 flags, __u8 *stage)
         ADVANCE_STAGE(stage, STAGE_SUSPICIOUS);
     }
 
-    // behavioural stage
-    if (
-        (*stage >= STAGE_SUSPICIOUS) &&
-        (flags & NETWORK_INTENT_SEEN)
-    ){
+    // behavioral stage
+    if (flags & NETWORK_INTENT_SEEN){
         ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
     }
 
@@ -28,9 +25,9 @@ static inline void evaluate_stage(__u32 flags, __u8 *stage)
     // confirmed
     if (
         (flags & CONNECT_SEEN) &&
+        (flags & SOCKET_SEEN) &&
         (flags & (DUP2_SEEN | DUP3_SEEN)) &&
-        (flags & FD_REDERECTS_SEEN) &&
-        (flags & SOCKET_MATCH_SEEN)
+        (flags & STDIO_HIJACK_SEEN)
     ){
         ADVANCE_STAGE(stage, STAGE_CONFIRMED);
     }

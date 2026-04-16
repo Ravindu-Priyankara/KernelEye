@@ -56,4 +56,4 @@ enum ke_stage {
 
 // macro for only update stage is higher than current one
 #define ADVANCE_STAGE(s, new) \
-    do {if((s) < (new)) (s) = (new); } while (0)
+    do {if(*(s) < (new)) *(s) = (new); } while (0)
