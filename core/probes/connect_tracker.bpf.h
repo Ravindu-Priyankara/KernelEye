@@ -162,10 +162,6 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   }
 
   ke_state->last_time = net_ts;
-  // check there was a connect flag
-  if(!(ke_state->flags & CONNECT_SEEN)){
-    update_state(ke_state, CONNECT_SEEN);
-  }
 
   // Read the generic pointer safely
   ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
@@ -196,7 +192,13 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
   if(ret < 0) return 0;
 
-  // scoring
+  // for reduce noice
+  if(event.addr.family == FAMILY_IPV4 || event.addr.family == FAMILY_IPV6){
+    // check there was a connect flag
+    if(!(ke_state->flags & CONNECT_SEEN)){
+      update_state(ke_state, CONNECT_SEEN);
+    }
+  }
 
   // for localhost
   if(event.addr.family == FAMILY_IPV4 && event.addr.ipv4 == LOOPBACK_IPV4 && !(ke_state->flags & LOOPBACK_IPV4_SEEN)){
