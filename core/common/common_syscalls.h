@@ -38,7 +38,10 @@ typedef enum {
 #define OPENAT2_SEEN                (1 << 18) 
 #define PTMX_SEEN                   (1 << 19)
 #define EXECVE_SEEN                 (1 << 20)
-#define SUSPICIOUS_FILENAME_SEEN    (1 << 21)
+#define INTERPRETER_REAL_SEEN       (1 << 21)
+#define INTERPRETER_ARGV_SEEN       (1 << 22)
+#define NETWORK_INTENT_SEEN         (1 << 23)
+#define SHELL_INLINE_SEEN           (1 << 24)
 
 // stages
 

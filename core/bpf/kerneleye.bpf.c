@@ -9,6 +9,7 @@
 #include "../helpers/common_helpers.h"
 #include "../helpers/connect_helpers.h"
 #include "../helpers/score_helpers.h"
+#include "../helpers/stage_evaluate_helpers.h"
 // temp
 #include "../helpers/testing_helpers.h"
 
