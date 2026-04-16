@@ -24,6 +24,7 @@ static inline void evaluate_stage(__u32 flags, __u16 *stage)
 
     // PTY-based shell (stealthy interactive shell)
     if (
+        (flags & (CONNECT_SEEN | SOCKET_SEEN)) && 
         (flags & PTMX_SEEN) &&
         (flags & (DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN))
     ){
