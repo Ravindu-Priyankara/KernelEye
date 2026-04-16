@@ -1,5 +1,6 @@
 static inline void evaluate_stage(__u32 flags, __u16 *stage __u64 last_time)
 {
+    __u64 now = get_trigger_time();
     // suspicious stage
     if (
         ((flags & INTERPRETER_REAL_SEEN) ^ (flags & INTERPRETER_ARGV_SEEN)) &&
