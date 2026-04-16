@@ -14,6 +14,15 @@ static inline void evaluate_stage(__u32 flags, __u16 *stage, __u64 last_time)
         ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
     }
 
+    if(
+        (flags & SOCKET_SEEN) &&
+        (flags & CONNECT_SEEN) &&
+        (flags & FD_REDERECTS_SEEN) &&
+        (flags & STDIO_HIJACK_SEEN)
+    ){
+        ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
+    }
+
     // high risk section
     if (
         (flags & CONNECT_SEEN) &&
