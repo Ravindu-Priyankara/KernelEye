@@ -84,8 +84,6 @@ int fork_handler(struct trace_event_raw_sched_process_fork *ctx){
     if(!(ke_state->flags & FORK_SEEN)){
         update_state(ke_state, FORK_SEEN);
     }
-    // for debugging
-    print_flags_and_score(cid, ke_state->flags, ke_state->stage);
 
 
     // for debugging
