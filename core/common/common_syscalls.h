@@ -1,7 +1,6 @@
 #pragma once
 
-#define DECAY_INTERVAL_NS  5000000000ULL  // 5 seconds
-#define DECAY_STEP         2              // subtract 2 points per interval
+#define KE_WINDOW_NS  5000000000ULL  // 5 seconds
 
 // used for request types identification
 typedef enum {
