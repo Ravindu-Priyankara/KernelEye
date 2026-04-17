@@ -1,4 +1,3 @@
-// this will break ur system(High risk module)
 
 SEC("lsm/task_alloc")
 int BPF_PROG(trace_process_create, struct task_struct *task){
@@ -20,12 +19,9 @@ int BPF_PROG(trace_process_create, struct task_struct *task){
         if(!ke_state) return 0;
     }
 
-    #ifdef DEBUG_MODE
     if(ke_state->stage >= STAGE_HIGH_RISK){
-        bpf_printk("Process Blocked!, CID: %llu \n", cid);
         return -EPERM;
     }
-    #endif
 
     return 0;
 }

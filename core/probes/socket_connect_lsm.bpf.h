@@ -21,7 +21,6 @@ int BPF_PROG(trace_connectivity, struct socket *sock, struct sockaddr *address){
     }
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
-        bpf_printk("Process Blocked!, CID: %llu \n", cid);
         return -EPERM;
     }
 
