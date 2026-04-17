@@ -19,14 +19,19 @@
 #include "../probes/connect_tracker.bpf.h"
 #include "../probes/dup2_tracker.bpf.h"
 #include "../probes/fork_tracker.bpf.h"
-#include "../probes/socket_create_lsm.bpf.h"
-#include "../probes/dup_kprobe.bpf.h"
 #include "../probes/dup3_tracker.bpf.h"
 #include "../probes/open_tracker.bpf.h"
 #include "../probes/openat_tracker.bpf.h"
 #include "../probes/openat2_tracker.bpf.h"
-#include "../probes/bprm_check_security_lsm.bpf.h"
+
+// kprobe
 #include "../probes/execve_kprobe.bpf.h"
+#include "../probes/dup_kprobe.bpf.h"
+
+// lsm
+#include "../probes/bprm_check_security_lsm.bpf.h"
+#include "../probes/socket_create_lsm.bpf.h"
+#include "../probes/task_alloc_lsm.bpf.h"
 
 
 char LICENSE[] SEC("license") = "GPL";
