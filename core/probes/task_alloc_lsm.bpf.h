@@ -1,3 +1,4 @@
+// this will break ur system(High risk module)
 
 SEC("lsm/task_alloc")
 int BPF_PROG(trace_process_create, struct task_struct *task){
