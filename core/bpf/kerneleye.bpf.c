@@ -31,6 +31,7 @@
 // lsm
 #include "../probes/bprm_check_security_lsm.bpf.h"
 #include "../probes/socket_create_lsm.bpf.h"
+#include "../probes/socket_connect_lsm.bpf.h"
 //#include "../probes/task_alloc_lsm.bpf.h" high risk module
 
 
