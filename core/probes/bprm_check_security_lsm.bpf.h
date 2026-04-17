@@ -21,9 +21,12 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     }
 
     // testing
+    #ifdef DEBUG_MODE
     if(ke_state->stage >= STAGE_HIGH_RISK){
+        bpf_printk("Process Blocked!, CID: %llu \n", cid);
         return -EPERM;
     }
+    #endif
 
     #ifdef DEBUG_MODE
         debug_counter(1);
