@@ -21,6 +21,9 @@ int BPF_PROG(trace_connectivity, struct socket *sock, struct sockaddr *address){
     }
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
+        // for safe kill {experiment level}
+        bpf_send_signal(SIGKILL);
+        
         return -EPERM;
     }
 

@@ -21,6 +21,9 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     }
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
+        // for safe kill {experiment level}
+        bpf_send_signal(SIGKILL);
+        
         return -EPERM;
     }
 

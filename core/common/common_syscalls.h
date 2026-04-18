@@ -1,6 +1,7 @@
 #pragma once
 
 #define KE_WINDOW_NS  5000000000ULL  // 5 seconds
+#define SIGKILL 9
 
 // used for request types identification
 typedef enum {
