@@ -23,6 +23,7 @@ void add_event_to_buffer(struct ke_event_header *event)
     ke_event_buf.events[idx].pid          = event->pid;
     ke_event_buf.events[idx].type         = event->type;
     ke_event_buf.events[idx].severity     = event->stage;
+    ke_event_buf.events[idx].flags        = event->flags;
 }
 
 // Display all events currently in the buffer
@@ -35,7 +36,8 @@ void ke_display_all_events(void)
         ke_display_event(
             e->pid,
             e->type,
-            e->severity
+            e->severity,
+            e->flags
         );
     }
 }

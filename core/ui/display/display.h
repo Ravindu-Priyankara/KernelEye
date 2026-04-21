@@ -12,7 +12,8 @@ void ke_display_init(void);
 void ke_display_event(
     int pid,
     int type,
-    int severity
+    int severity,
+    uint64_t flags
 );
 
 void ke_print_stats(struct stats *s);

@@ -10,10 +10,12 @@ void ke_display_init(void)
     printf(COLOR_BRIGHT_WHITE"                     KernelEye Live Threat Monitor\n"COLOR_RESET);
     printf(COLOR_BRIGHT_CYAN"=====================================================================\n"COLOR_RESET);
 
-    printf(COLOR_BRIGHT_YELLOW"%-8s %-10s %-10s\n"COLOR_RESET,
+    printf(COLOR_BRIGHT_YELLOW"%-8s %-10s %-10s %-10s\n"COLOR_RESET,
            "PID",
            "TYPE",
-           "SEVERITY");
+           "SEVERITY",
+           "FLAGS"
+        );
 
     printf(COLOR_BRIGHT_BLACK"---------------------------------------------------------------------\n"COLOR_RESET);
 
@@ -71,7 +73,8 @@ const char *ke_detection_str(int id)
 void ke_display_event(
     int pid,
     int type,
-    int severity
+    int severity,
+    uint64_t flags
 )
 {
     const char *type_str = ke_event_type_str(type);
@@ -97,12 +100,14 @@ void ke_display_event(
             color = COLOR_RESET;
     }
 
-    printf("%-8d %-10s %s%-10s%s \n",
+    printf("%-8d %-10s %s%-10s%s 0x%llx\n",
            pid,
            type_str,
            color,
            sev_str,
-           COLOR_RESET);
+           COLOR_RESET,
+           (unsigned long long)flags
+        );
 
     fflush(stdout);
 }
