@@ -117,9 +117,7 @@ struct ke_ctx_state{
 // This is the list of our header types
 enum ke_event_type {
     KE_EVENT_INVALID = 0,   // used for error handling
-    KE_EVENT_EXECVE = 1,    
-    KE_EVENT_CONNECT = 2,   
-    KE_EVENT_REVERSE_SHELL = 3, 
+    KE_EVENT_REVERSE_SHELL = 1, 
 };
 
 /* 
