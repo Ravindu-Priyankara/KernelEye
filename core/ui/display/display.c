@@ -97,7 +97,7 @@ void ke_display_event(
             color = COLOR_RESET;
     }
 
-    printf("%-8d %-10s %s%-10s%s %-20s %-10d\n",
+    printf("%-8d %-10s %s%-10s%s \n",
            pid,
            type_str,
            color,
