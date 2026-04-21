@@ -11,7 +11,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
 
     struct ke_ctx_state *ke_state;
     struct dup_state *dup3_state;
-    struct connect_event *connect_event;
+    struct connect_event *conn = NULL;
 
     pid = get_tgid();
     ppid = get_ppid();
@@ -39,6 +39,21 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     // cut off the cost
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
+    //extract the connect data
+    if(ke_state->flags & CONNECT_SEEN){
+        conn = bpf_map_lookup_elem(&connect_map, &cid);
+    }
+
+    // for reduce false positives
+    if(conn){
+        __u64 delta = dup3_ts > conn->net_ts
+        ? dup3_ts - conn->net_ts
+        : conn->net_ts - dup3_ts;
+
+        // connect + dup2 should trigger withing 5 seconds
+        if(delta > 5000000000ULL) return 0;
+    }
+
     ke_state->last_time = dup3_ts;
     if(!(ke_state->flags & DUP3_SEEN)){
         update_state(ke_state, DUP3_SEEN);
@@ -59,23 +74,19 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     dup3_state->oldfd = old_fd;
     dup3_state->ppid = ppid;
     dup3_state->last_dup_ts = dup3_ts;
-    dup3_state->stdio_redirects++;
 
-    // check redirects
-    if(dup3_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
-        update_state(ke_state, FD_REDERECTS_SEEN);
+    // for reduce false positives
+    if(conn & conn->fd == old_fd){
+        dup3_state->stdio_redirects++;
+        update_state(ke_state, SOCKET_MATCH_SEEN);
     }
 
-    if(!(ke_state->flags & SOCKET_MATCH_SEEN))
+    // check redirects
+    if(dup3_state->stdio_redirects >= 2 
+        && (ke_state->flags & SOCKET_MATCH_SEEN)
+        && !(ke_state->flags & FD_REDERECTS_SEEN))
     {
-        // openpty or forkpty based reverse shells not trigger this check
-        connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-        if(connect_event){
-            // check sock fd == dup3 old fd
-            if(connect_event->fd == old_fd){
-                update_state(ke_state, SOCKET_MATCH_SEEN);
-            }
-        }
+        update_state(ke_state, FD_REDERECTS_SEEN);
     }
 
     // for debugging
