@@ -17,8 +17,8 @@ int handle_event(void *ctx, void *data, size_t size){
     (void)ctx;
     (void)size;
 
-    // get all data from suspicious event
-    struct ke_suspicious_event *event = data;
+    // get all data from event header
+    struct ke_event_header *event = data;
 
     // accurately increase events
     ke_stats.events++;

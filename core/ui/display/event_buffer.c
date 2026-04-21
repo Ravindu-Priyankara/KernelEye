@@ -5,7 +5,7 @@
 struct event_buffer ke_event_buf = {0};
 
 // Add a new suspicious event to the circular buffer
-void add_event_to_buffer(struct ke_suspicious_event *event)
+void add_event_to_buffer(struct ke_event_header *event)
 {
     if(!event) return; // sanity check
 
@@ -20,9 +20,9 @@ void add_event_to_buffer(struct ke_suspicious_event *event)
     }
 
     // Copy event data into buffer slot
-    ke_event_buf.events[idx].pid          = event->hdr.pid;
-    ke_event_buf.events[idx].type         = event->hdr.type;
-    ke_event_buf.events[idx].severity     = event->hdr.stage;
+    ke_event_buf.events[idx].pid          = event->pid;
+    ke_event_buf.events[idx].type         = event->type;
+    ke_event_buf.events[idx].severity     = event->stage;
 }
 
 // Display all events currently in the buffer
