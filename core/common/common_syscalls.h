@@ -43,16 +43,6 @@ typedef enum {
 #define NETWORK_INTENT_SEEN         (1 << 23)
 #define SHELL_INLINE_SEEN           (1 << 24)
 
-// stages
-
-enum ke_stage {
-    STAGE_NORMAL = 0,
-    STAGE_SUSPICIOUS = 10,
-    STAGE_BEHAVIORAL = 20,
-    STAGE_HIGH_RISK = 30,
-    STAGE_CONFIRMED = 40,
-    STAGE_BLOCKED = 50
-};
 
 // macro for only update stage is higher than current one
 #define ADVANCE_STAGE(s, new) \

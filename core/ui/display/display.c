@@ -2,7 +2,6 @@
 #include "display.h"
 #include "../../detections/detection_results.h"
 #include "../../common/common_structs.h"
-#include "../../common/common_syscalls.h"
 #include "../color.h"
 
 // Initialize the console UI for KernelEye

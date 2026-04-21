@@ -195,6 +195,16 @@ struct scratch_buf{
     char buffer[256];
 };
 
+// stages
+enum ke_stage {
+    STAGE_NORMAL = 0,
+    STAGE_SUSPICIOUS = 10,
+    STAGE_BEHAVIORAL = 20,
+    STAGE_HIGH_RISK = 30,
+    STAGE_CONFIRMED = 40,
+    STAGE_BLOCKED = 50
+};
+
 /*************************************************
 ******* ABI invariants - DO NOT MODIFY ***********
 **************************************************/
