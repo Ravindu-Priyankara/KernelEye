@@ -126,15 +126,14 @@ enum ke_event_type {
  *
  * ABI NOTE:
  * Layout must remain stable (shared with userland).
- * Size: 24 bytes (aligned to 8).
+ * Size: 16 bytes (aligned to 8).
  *
  */
 struct ke_event_header {
     __u32 type;      // event type
     __u32 pid;       // process id
-    __u64 ts;        // primary timestamp
-    __u32 ppid;      // parent pid 
-    __u32 __reserved;
+    __u16 stage;
+    __u8  __reserved[6];
 };
 
 /****************************************
@@ -206,8 +205,8 @@ _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mis
 // context state must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_ctx_state) == 24, "context state struct size mismatch!");
 
-// ke_event_header must remain 24 bytes (aligned to 8)
-_Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
+// ke_event_header must remain 16 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_event_header) == 16,"ke_event_header size mismatch!");
 
 // ke_reverse_shell_payload must remain 312 bytes
 _Static_assert(sizeof(struct ke_reverse_shell_payload) == 312,"ke_reverse_shell_payload size mismatch!");
@@ -237,6 +236,4 @@ _Static_assert(__alignof__(struct ke_reverse_shell_payload) == 8, "reverse shell
 _Static_assert(__alignof__(struct ke_event_header) == 8, "event header alignment changed!");
 
 // Protect header types reordering
-_Static_assert(KE_EVENT_EXECVE == 1, "EXECVE enum changed!");
-_Static_assert(KE_EVENT_CONNECT == 2, "CONNECT enum changed!");
-_Static_assert(KE_EVENT_REVERSE_SHELL == 3, "REVERSE_SHELL enum changed!");
+_Static_assert(KE_EVENT_REVERSE_SHELL == 1, "REVERSE_SHELL enum changed!");
