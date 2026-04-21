@@ -10,7 +10,7 @@ void ke_display_init(void)
     printf(COLOR_BRIGHT_WHITE"                     KernelEye Live Threat Monitor\n"COLOR_RESET);
     printf(COLOR_BRIGHT_CYAN"=====================================================================\n"COLOR_RESET);
 
-    printf(COLOR_BRIGHT_YELLOW"%-8s %-10s %-10s %-10s\n"COLOR_RESET,
+    printf(COLOR_BRIGHT_YELLOW"%-8s %-10s %-15s %-10s\n"COLOR_RESET,
            "PID",
            "TYPE",
            "SEVERITY",
