@@ -60,4 +60,13 @@ static inline void update_state(struct ke_ctx_state *s, __u32 flag)
 {
     s->flags |= flag;
     evaluate_stage(s->flags, &s->stage, s->last_time);
+
+    if (s->stage == STAGE_BEHAVIORAL)
+        emit_event(STAGE_BEHAVIORAL);
+
+    else if (s->stage == STAGE_HIGH_RISK)
+        emit_event(STAGE_HIGH_RISK);
+
+    else if (s->stage == STAGE_CONFIRMED)
+        emit_event(STAGE_CONFIRMED);
 }

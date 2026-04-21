@@ -15,7 +15,7 @@ static __always_inline int emit_event(__u16 stage){
     struct ke_event_header *event;
 
     pid = get_tgid();
-    if(sanitize_the_pid(pid) != ERR_FAILURE) return ERR_FAILURE;
+    if(sanitize_the_pid(pid) != ERR_SUCCESS) return ERR_FAILURE;
 
     // reserve the space
     event = bpf_ringbuf_reserve(&alert_map, sizeof(*event), 0);
