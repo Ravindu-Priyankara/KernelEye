@@ -5,7 +5,6 @@
 #include "../common/common_debugging.h"
 #include "../common/common_syscalls.h"
 
-#include "../helpers/event_helpers.h"
 #include "../helpers/common_helpers.h"
 #include "../helpers/connect_helpers.h"
 #include "../helpers/score_helpers.h"
