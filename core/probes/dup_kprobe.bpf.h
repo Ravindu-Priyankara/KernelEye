@@ -48,7 +48,7 @@ SEC("kretprobe/__x64_sys_dup")
 int BPF_KRETPROBE(dup_exit){
 
     struct ke_ctx_state *ke_state;
-    struct connect_event *conn_event;
+    struct connect_event *conn_event = NULL;
 
     __u64 cid;
     int *val;
@@ -80,12 +80,23 @@ int BPF_KRETPROBE(dup_exit){
     conn_event = bpf_map_lookup_elem(&connect_map, &cid);
     if(!conn_event) goto cleanup;
 
+    __u64 now = get_trigger_time();
+    __u64 delta = now > conn_event->net_ts 
+        ? now - conn_event->net_ts
+        : conn_event->net_ts - now;
+    
+    if (delta > 5000000000ULL) goto cleanup;
+
     /*
     *   checks:
     *       1. connect fd should equal to dup old fd
     *       2. newfd <= 2 {0,1,2}
     */
-    if(conn_event->fd == oldfd && newfd <= 2 && !(ke_state->flags & SOCKET_MATCH_SEEN)){
+    if(conn_event->fd == oldfd 
+        && newfd <= 2 
+        && newfd >= 0
+        && !(ke_state->flags & SOCKET_MATCH_SEEN))
+    {
         update_state(ke_state, SOCKET_MATCH_SEEN);
     }
 
