@@ -113,6 +113,8 @@ int dup2_enter_handler(
     */
     __u64 cid;
 
+    struct connect_event *conn = NULL;
+
     /*
     * Defined in:
     *   - helpers/common_helpers.h
@@ -150,6 +152,21 @@ int dup2_enter_handler(
     // we need check is there connect to internet befor go further
     if(!(ke_state->flags & SOCKET_SEEN)) return 0;
 
+    // extract the connect details
+    if(ke_state->flags & CONNECT_SEEN){
+        conn = bpf_map_lookup_elem(&connect_map, &cid);
+    }
+
+    // for reduce false positives
+    if(conn){
+        __u64 delta = dup2_ts > conn->net_ts
+        ? dup2_ts - conn->net_ts
+        : conn->net_ts - dup2_ts;
+
+        // connect + dup2 should trigger withing 5 seconds
+        if(delta > 5000000000ULL) return 0;
+    }
+
     // update the map
     ke_state->last_time = dup2_ts;
 
@@ -169,27 +186,23 @@ int dup2_enter_handler(
     dup2_state->last_dup_ts = dup2_ts;
     dup2_state->ppid = ppid;
     dup2_state->oldfd = old_fd;
-    dup2_state->stdio_redirects++;
+
+    // for reduce false positives
+    if(conn && conn->fd == old_fd){
+        dup2_state->stdio_redirects++;
+        update_state(ke_state, SOCKET_MATCH_SEEN);
+    }
 
     if(!(ke_state->flags & DUP2_SEEN)){
         update_state(ke_state, DUP2_SEEN);
     }
 
-    //fd redirectsf
-    if(dup2_state->stdio_redirects >= 2 && !(ke_state->flags & FD_REDERECTS_SEEN)){
-        update_state(ke_state, FD_REDERECTS_SEEN);
-    }
-
-    struct connect_event *connect_event;
-
-    if(!(ke_state->flags & SOCKET_MATCH_SEEN))
+    //fd redirects 
+    if(dup2_state->stdio_redirects >= 2 
+        && (ke_state->flags & SOCKET_MATCH_SEEN) 
+        && !(ke_state->flags & FD_REDERECTS_SEEN))
     {
-        connect_event = bpf_map_lookup_elem(&connect_map, &cid);
-        if(!connect_event) return 0;
-
-        if(connect_event->fd == old_fd){
-            update_state(ke_state, SOCKET_MATCH_SEEN);
-        }
+        update_state(ke_state, FD_REDERECTS_SEEN);
     }
 
     // for debugging
