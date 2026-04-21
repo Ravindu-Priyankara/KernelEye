@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
 #include "ui/banner/banner.h"
