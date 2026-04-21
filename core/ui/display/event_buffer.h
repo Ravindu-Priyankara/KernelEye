@@ -2,6 +2,7 @@
 
 #include "../../common/common_structs.h"
 #include "../../detections/detection_results.h"
+#include <stdint.h>
 
 #define MAX_EVENTS 100
 
@@ -12,6 +13,7 @@ struct event_entry {
     int pid;
     int type;
     int severity;
+    uint64_t flags;
 };
 
 struct event_buffer {
