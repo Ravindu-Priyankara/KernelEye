@@ -171,7 +171,7 @@ struct ke_reverse_shell_payload {
 *
 * ABI NOTE:
 * Layout must remain stable (shared with userland).
-* Size: 328 bytes (aligned to 8).
+* Size: 336 bytes (aligned to 8).
 * Developper NOTE:
 *   - Ring buffer streaming every event take 336 bytes.
 *   - We can reduce it via 
@@ -231,8 +231,8 @@ _Static_assert(sizeof(struct ke_sockaddr) == 24,"ke_sockaddr size mismatch");
 // dup2_state must remain 24 bytes
 _Static_assert(sizeof(struct dup_state) == 24, "dup2_state size mismatch");
 
-// streaming event must remain 328 bytes
-_Static_assert(sizeof(struct ke_suspicious_event) == 328, "streaming event mismatch!");
+// streaming event must remain 336 bytes
+_Static_assert(sizeof(struct ke_suspicious_event) == 336, "streaming event mismatch!");
 
 // Protect reordering structs
 _Static_assert(offsetof(struct ke_reverse_shell_payload, net_ts) == 264,"net_ts offset changed!");

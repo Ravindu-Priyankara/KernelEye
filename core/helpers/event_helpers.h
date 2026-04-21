@@ -8,7 +8,7 @@
 #include "../common/common_sockets.h"
 
 
-static __always_inline int emit_event(__u16 stage, __64 flags){
+static __always_inline int emit_event(__u16 stage, __u64 flags){
 
     __u32 pid;
 
