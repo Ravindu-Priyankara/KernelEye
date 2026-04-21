@@ -76,7 +76,7 @@ int dup3_handler(struct trace_event_raw_sys_enter *ctx){
     dup3_state->last_dup_ts = dup3_ts;
 
     // for reduce false positives
-    if(conn & conn->fd == old_fd){
+    if(conn && conn->fd == old_fd){
         dup3_state->stdio_redirects++;
         update_state(ke_state, SOCKET_MATCH_SEEN);
     }
