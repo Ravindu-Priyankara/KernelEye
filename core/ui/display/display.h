@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 struct stats {
     int events;
     int reverse_shells;
