@@ -12,9 +12,7 @@ void ke_display_init(void);
 void ke_display_event(
     int pid,
     int type,
-    int severity,
-    int detection_id,
-    int score
+    int severity
 );
 
 void ke_print_stats(struct stats *s);
