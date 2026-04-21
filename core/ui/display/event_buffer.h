@@ -12,8 +12,6 @@ struct event_entry {
     int pid;
     int type;
     int severity;
-    int detection_id;
-    int score;
 };
 
 struct event_buffer {
@@ -24,7 +22,6 @@ struct event_buffer {
 
 extern struct event_buffer ke_event_buf;
 
-void add_event_to_buffer(struct ke_suspicious_event *event,
-                         struct ke_detection_result *result);
+void add_event_to_buffer(struct ke_suspicious_event *event);
 
 void ke_display_all_events(void);
