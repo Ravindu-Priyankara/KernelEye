@@ -8,7 +8,7 @@
 #include "../common/common_sockets.h"
 
 
-static __always_inline int emit_event(__u16 stage){
+static __always_inline int emit_event(__u16 stage, __64 flags){
 
     __u32 pid;
 
@@ -25,6 +25,7 @@ static __always_inline int emit_event(__u16 stage){
     event->type = KE_EVENT_REVERSE_SHELL;
     event->pid = pid;
     event->stage = stage;
+    event->flags = flags;
 
     bpf_ringbuf_submit(event, 0);
 

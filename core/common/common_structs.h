@@ -126,12 +126,13 @@ enum ke_event_type {
  *
  * ABI NOTE:
  * Layout must remain stable (shared with userland).
- * Size: 16 bytes (aligned to 8).
+ * Size: 24 bytes (aligned to 8).
  *
  */
-struct __attribute__((aligned(8))) ke_event_header {
+struct ke_event_header {
     __u32 type;      // event type
     __u32 pid;       // process id
+    __u64 flags;
     __u16 stage;
     __u8  __reserved[6];
 };
@@ -215,8 +216,8 @@ _Static_assert(sizeof(struct connect_event) == 40,"connect_event struct size mis
 // context state must remain 24 bytes (aligned to 8)
 _Static_assert(sizeof(struct ke_ctx_state) == 24, "context state struct size mismatch!");
 
-// ke_event_header must remain 16 bytes (aligned to 8)
-_Static_assert(sizeof(struct ke_event_header) == 16,"ke_event_header size mismatch!");
+// ke_event_header must remain 24 bytes (aligned to 8)
+_Static_assert(sizeof(struct ke_event_header) == 24,"ke_event_header size mismatch!");
 
 // ke_reverse_shell_payload must remain 312 bytes
 _Static_assert(sizeof(struct ke_reverse_shell_payload) == 312,"ke_reverse_shell_payload size mismatch!");
