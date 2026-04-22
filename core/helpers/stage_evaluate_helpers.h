@@ -1,69 +1,130 @@
-// for rules
+/*
+|*********************************|
+|*********** Rules ***************|
+|*********************************|
+*/
 
-static inline void evaluate_stage(__u32 flags, __u16 *stage, __u64 last_time)
-{
-    __u64 now = get_trigger_time();
-    // suspicious stage
-    if (
+// suspicious category
+
+/*
+*   Check:
+*       - argv[0] and filename contain same filename{paths not concider}
+*       - and also check there was an inline arguments
+*   Check execve_kprobe for more details
+*/
+static __always_inline int rule_suspicious_executables(__u64 flags){
+    return (
         ((!!(flags & INTERPRETER_REAL_SEEN)) ^ (!!(flags & INTERPRETER_ARGV_SEEN))) &&
         (flags & SHELL_INLINE_SEEN)
-    ){
-        ADVANCE_STAGE(stage, STAGE_SUSPICIOUS);
-    }
+    );
+}
 
-    // behavioral stage
-    if (flags & NETWORK_INTENT_SEEN){
-        ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
-    }
+// behaviour category
 
-    if(
-        (flags & SOCKET_SEEN) &&
+static inline int rule_network_behavior(__u64 flags)
+{
+    return (flags & NETWORK_INTENT_SEEN) ||
+        ((flags & SOCKET_SEEN) &&
         (flags & CONNECT_SEEN) &&
         (flags & FD_REDERECTS_SEEN) &&
-        (flags & STDIO_HIJACK_SEEN)
-    ){
-        ADVANCE_STAGE(stage, STAGE_BEHAVIORAL);
-    }
+        (flags & STDIO_HIJACK_SEEN));
+}
 
-    // high risk section
-    if (
-        (flags & CONNECT_SEEN) &&
+// high risk category
+
+static __always_inline int rule_suspicious_network_activities
+(
+    __u64 flags,
+    __u64 delta
+)
+{
+    return (flags & CONNECT_SEEN) &&
         (flags & (DUP2_SEEN | DUP3_SEEN)) &&
         (flags & FD_REDERECTS_SEEN) &&
-        (now - last_time < KE_WINDOW_NS)
-    ){
-        ADVANCE_STAGE(stage, STAGE_HIGH_RISK);
-    }
+        (now - last_time < KE_WINDOW_NS);
+}
 
-    // confirmed
+// confimed category
 
-    // PTY-based shell (stealthy interactive shell)
-    if (
-        (flags & (CONNECT_SEEN | SOCKET_SEEN)) && 
+static __always_inline int rule_confirmed_pty_shell
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & SOCKET_SEEN) &&
+        (flags & CONNECT_SEEN) &&
         (flags & PTMX_SEEN) &&
-        (flags & (DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
+        (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
         (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
-        (now - last_time < KE_WINDOW_NS)
-    ){
-        ADVANCE_STAGE(stage, STAGE_CONFIRMED);
+        (now - last_time < KE_WINDOW_NS);
+}
+
+static __always_inline int rule_confirmed_textbook_reverse_shell
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & SOCKET_SEEN) &&
+        (flags & CONNECT_SEEN) &&
+        (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
+        (flags & SOCKET_MATCH_SEEN) &&
+        (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
+        (now - last_time < KE_WINDOW_NS);
+}
+
+static __always_inline int rule_confirmed_forked_reverse_shell
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & SOCKET_SEEN) &&
+        (flags & CONNECT_SEEN) &&
+        (flags & FORK_SEEN) &&
+        (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
+        (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
+        (now - last_time < KE_WINDOW_NS);
+}
+
+
+static __always_inline void evaluate_rules(struct ke_ctx_state *s){
+
+    __u64 now = get_trigger_time();
+    __u64 delta = now - s->last_time;
+
+    // set flags
+    if(rule_suspicious_executables(s->flags)){
+        ADVANCE_STAGE(&s->stage, STAGE_SUSPICIOUS);
     }
 
-    if (
-        (flags & CONNECT_SEEN) &&
-        (flags & SOCKET_SEEN) &&
-        (flags & (DUP2_SEEN | DUP3_SEEN)) &&
-        (flags & (STDIO_HIJACK_SEEN | FD_REDERECTS_SEEN)) &&
-        (now - last_time < KE_WINDOW_NS)
-    ){
-        ADVANCE_STAGE(stage, STAGE_CONFIRMED);
+    if(rule_network_behavior(s->flags)){
+        ADVANCE_STAGE(&s->stage, STAGE_BEHAVIORAL);
+    }
+
+    if(rule_suspicious_network_activities(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_HIGH_RISK);
+    }
+
+    if(rule_confirmed_pty_shell(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
+    }
+
+    if(rule_confirmed_textbook_reverse_shell(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
+    }
+
+    if(rule_confirmed_forked_reverse_shell(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
     }
 }
+
 
 // updater
 static inline void update_state(struct ke_ctx_state *s, __u32 flag)
 {
     s->flags |= flag;
-    evaluate_stage(s->flags, &s->stage, s->last_time);
+
+    // assign stage
+    evaluate_rules(s);
 
     // selected events pass to ring buffer
     if (s->stage == STAGE_BEHAVIORAL)
