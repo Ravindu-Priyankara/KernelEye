@@ -4,6 +4,7 @@
 #include "../common/common_status.h"
 #include "../common/common_debugging.h"
 #include "../common/common_syscalls.h"
+#include "../common/common_bit_ops.h"
 
 #include "../helpers/event_helpers.h"
 #include "../helpers/common_helpers.h"

@@ -1,3 +1,5 @@
+// for rules
+
 static inline void evaluate_stage(__u32 flags, __u16 *stage, __u64 last_time)
 {
     __u64 now = get_trigger_time();
@@ -63,6 +65,7 @@ static inline void update_state(struct ke_ctx_state *s, __u32 flag)
     s->flags |= flag;
     evaluate_stage(s->flags, &s->stage, s->last_time);
 
+    // selected events pass to ring buffer
     if (s->stage == STAGE_BEHAVIORAL)
         emit_event(STAGE_BEHAVIORAL, s->flags);
 
