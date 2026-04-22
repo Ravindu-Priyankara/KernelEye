@@ -12,12 +12,12 @@ typedef enum {
 }common_syscalls;
 
 // Bitmask Flags
-#define OTHER 0
+//#define OTHER 0
 /*
 *   The connect syscall can be bypassed. So we decided to track the socket also.
 *   The order will be changed during the code cleaning stage.
 */
-#define SOCKET_SEEN                 (1 << 0)    // 0001
+/*#define SOCKET_SEEN                 (1 << 0)    // 0001
 #define LOOPBACK_IPV4_SEEN          (1 << 1)
 #define CONNECT_SEEN                (1 << 2)    // 0010
 #define PRIVATE_IP_SEEN             (1 << 3)
@@ -41,7 +41,7 @@ typedef enum {
 #define INTERPRETER_REAL_SEEN       (1 << 21)
 #define INTERPRETER_ARGV_SEEN       (1 << 22)
 #define NETWORK_INTENT_SEEN         (1 << 23)
-#define SHELL_INLINE_SEEN           (1 << 24)
+#define SHELL_INLINE_SEEN           (1 << 24)*/
 
 
 // macro for only update stage is higher than current one
