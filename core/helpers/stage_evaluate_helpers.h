@@ -41,7 +41,7 @@ static __always_inline int rule_suspicious_network_activities
     return (flags & CONNECT_SEEN) &&
         (flags & (DUP2_SEEN | DUP3_SEEN)) &&
         (flags & FD_REDERECTS_SEEN) &&
-        (now - last_time < KE_WINDOW_NS);
+        (delta < KE_WINDOW_NS);
 }
 
 // confimed category
@@ -56,7 +56,7 @@ static __always_inline int rule_confirmed_pty_shell
         (flags & PTMX_SEEN) &&
         (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
         (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
-        (now - last_time < KE_WINDOW_NS);
+        (delta < KE_WINDOW_NS);
 }
 
 static __always_inline int rule_confirmed_textbook_reverse_shell
@@ -69,7 +69,7 @@ static __always_inline int rule_confirmed_textbook_reverse_shell
         (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
         (flags & SOCKET_MATCH_SEEN) &&
         (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
-        (now - last_time < KE_WINDOW_NS);
+        (delta < KE_WINDOW_NS);
 }
 
 static __always_inline int rule_confirmed_forked_reverse_shell
@@ -82,7 +82,7 @@ static __always_inline int rule_confirmed_forked_reverse_shell
         (flags & FORK_SEEN) &&
         (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN | FCNTL_SEEN)) &&
         (flags & (FD_REDERECTS_SEEN | STDIO_HIJACK_SEEN | FD_REWIRING_SEEN)) &&
-        (now - last_time < KE_WINDOW_NS);
+        (delta < KE_WINDOW_NS);
 }
 
 
