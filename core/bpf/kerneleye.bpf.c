@@ -24,6 +24,7 @@
 #include "../probes/open_tracker.bpf.h"
 #include "../probes/openat_tracker.bpf.h"
 #include "../probes/openat2_tracker.bpf.h"
+#include "../probes/sched_process_exit_tracker.bpf.h"
 
 // kprobe
 #include "../probes/execve_kprobe.bpf.h"
