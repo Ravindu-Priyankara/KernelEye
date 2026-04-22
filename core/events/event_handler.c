@@ -24,14 +24,14 @@ int handle_event(void *ctx, void *data, size_t size){
     ke_stats.events++;
     // amount of reverse shells
     if(event->type == KE_EVENT_REVERSE_SHELL){
-        ke_stats->reverse_shells++;
+        ke_stats.reverse_shells++;
     }
 
     // alert & blocks
     if(event->stage < STAGE_HIGH_RISK){
-        ke_stats->alerts++;
+        ke_stats.alerts++;
     }else{
-        ke_stats->blocks++;
+        ke_stats.blocks++;
     }
 
 
