@@ -6,7 +6,7 @@
 SEC("tracepoint/sched/sched_process_exit")
 int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
 
-    __u64 cid;
+    __u64 *cid;
     __u64 pid;
 
     pid = get_tgid();
@@ -15,7 +15,7 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
     if(!cid) return 0;
 
     // for test
-    bpf_map_delete_elem(&ctx_state_map, &cid);
+    bpf_map_delete_elem(&ctx_state_map, cid);
 
     return 0;
 }
