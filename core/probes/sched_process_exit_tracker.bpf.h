@@ -16,6 +16,9 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
 
     // for test
     bpf_map_delete_elem(&ctx_state_map, cid);
+    bpf_map_delete_elem(&execve_hash_map, &cid);
+    bpf_map_delete_elem(&dup_map, &cid);
+    bpf_map_delete_elem(&connect_map, &cid);
 
     return 0;
 }
