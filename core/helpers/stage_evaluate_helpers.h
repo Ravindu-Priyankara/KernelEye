@@ -85,6 +85,19 @@ static __always_inline int rule_confirmed_forked_reverse_shell
         (delta < KE_WINDOW_NS);
 }
 
+// mainly target socat based shells
+static __always_inline int rule_confimed_pty_relay_shell
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & SOCKET_SEEN) &&
+        (flags & CONNECT_SEEN) &&
+        (flags & FORK_SEEN) &&
+        (flags & PTMX_SEEN) &&
+       (flags & (DUP_SEEN | DUP2_SEEN | DUP3_SEEN)) &&
+       (delta < KE_WINDOW_NS);
+}
 
 static __always_inline void evaluate_rules(struct ke_ctx_state *s){
 
@@ -113,6 +126,10 @@ static __always_inline void evaluate_rules(struct ke_ctx_state *s){
     }
 
     if(rule_confirmed_forked_reverse_shell(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
+    }
+
+    if(rule_confimed_pty_relay_shell(s->flags, delta)){
         ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
     }
 }
