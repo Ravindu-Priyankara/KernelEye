@@ -21,11 +21,11 @@ int BPF_PROG(trace_connectivity, struct socket *sock, struct sockaddr *address){
     }
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
-        print_flags_and_score(cid, ke_state->flags, ke_state->stage);
+        //print_flags_and_score(cid, ke_state->flags, ke_state->stage);
         // for safe kill {experiment level}
-        /*bpf_send_signal(SIGKILL);
+        bpf_send_signal(SIGKILL);
         
-        return -EPERM;*/
+        return -EPERM;
     }
 
     #ifdef DEBUG_MODE

@@ -21,11 +21,11 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     }
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
-        print_flags_and_score(cid, ke_state->flags, ke_state->stage);
-        // for safe kill {experiment level}
-        /*bpf_send_signal(SIGKILL);
+        //print_flags_and_score(cid, ke_state->flags, ke_state->stage);
         
-        return -EPERM;*/
+        bpf_send_signal(SIGKILL);
+        
+        return -EPERM;
     }
 
     #ifdef DEBUG_MODE
