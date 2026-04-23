@@ -26,7 +26,6 @@ int openat2_handler(struct trace_event_raw_sys_enter *ctx){
         if(!ke_state) return 0;
     }
 
-    if(!(ke_state->flags & SOCKET_SEEN)) return 0; //filter early
     // set openat2 flag
     ke_state->last_time = openat2_ts;
     if(!(ke_state->flags & OPENAT2_SEEN)){
