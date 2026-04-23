@@ -17,13 +17,13 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
     if(!cid) return 0;
 
     // extract and clear context state map
-    /*ke_state = bpf_map_lookup_elem(&ctx_state_map, cid);
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, cid);
     if(ke_state){
         ke_state->last_time = 0;
         ke_state->flags = 0;
         ke_state->stage = STAGE_NORMAL;
         ke_state->fd_mutation_count = 0;
-    }*/
+    }
     
     bpf_map_delete_elem(&execve_hash_map, cid);
     bpf_map_delete_elem(&dup_map, cid);
