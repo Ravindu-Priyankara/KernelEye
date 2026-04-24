@@ -11,7 +11,7 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
 
     struct ke_ctx_state *ke_state;
 
-    pid = ctx->pid; // stable rather than bpf helper
+    pid = get_tgid();
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
     cid = bpf_map_lookup_elem(&ctx_map, &pid);
     if(!cid) return 0;
