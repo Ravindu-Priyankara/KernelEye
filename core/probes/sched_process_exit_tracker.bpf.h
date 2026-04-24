@@ -8,14 +8,17 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
 
     __u64 *cid;
     __u32 pid;
+    bool group_dead;
 
     struct ke_ctx_state *ke_state;
 
     pid = get_tgid();
+    group_dead = ctx->group_dead;
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
     cid = bpf_map_lookup_elem(&ctx_map, &pid);
     if(!cid) return 0;
 
+    if(!group_dead) goto cleanup;
     // extract and clear context state map
     ke_state = bpf_map_lookup_elem(&ctx_state_map, cid);
     if(ke_state){
@@ -30,5 +33,6 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
     bpf_map_delete_elem(&connect_map, cid);
     bpf_map_delete_elem(&ctx_map, &pid); // otherwise innocent process will stay same cid
 
+cleanup:
     return 0;
 }
