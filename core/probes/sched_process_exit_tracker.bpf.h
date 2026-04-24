@@ -7,7 +7,7 @@ SEC("tracepoint/sched/sched_process_exit")
 int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
 
     __u64 *cid;
-    __u64 pid;
+    __u32 pid;
 
     struct ke_ctx_state *ke_state;
 
