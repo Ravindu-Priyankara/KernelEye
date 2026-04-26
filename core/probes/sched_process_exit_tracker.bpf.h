@@ -11,8 +11,10 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
     bool group_dead;
 
     struct ke_ctx_state *ke_state;
+    struct task_struct *task = (struct task_struct *)bpf_get_current_task();
 
-    pid = get_tgid();
+    pid = BPF_CORE_READ(task, tgid);
+
     group_dead = ctx->group_dead;
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
     cid = bpf_map_lookup_elem(&ctx_map, &pid);
