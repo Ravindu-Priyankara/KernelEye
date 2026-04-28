@@ -48,12 +48,6 @@ int main(int argc, char *argv[]){
 
     printf("[+] Initializing eBPF probes...\n");
 
-    // load exec rules once
-    exec_rules_init();
-    exec_rules_load_from_file(KE_RULES_PATH);
-    printf("[+] Loading detection rules...\n");
-    printf("[+] Loading detection rules...\n");
-
     system("clear");   // clean screen for monitoring UI
     ke_print_banner();
     ke_description();
