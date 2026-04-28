@@ -23,13 +23,12 @@ static void handle_signal(int sig)
 static int libbpf_print_fn(enum libbpf_print_level level,
                           const char *format, va_list args)
 {
-#ifdef DEBUG_MODE
-    return vfprintf(stderr, format, args);
-#else
-    if (level == LIBBPF_WARN || level == LIBBPF_INFO)
+    (void)level;
+    #ifdef DEBUG_MODE
         return vfprintf(stderr, format, args);
-    return 0;
-#endif
+    #else
+        return 0;
+    #endif
 }
 
 int main(int argc, char *argv[]){

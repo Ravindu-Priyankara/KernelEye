@@ -13,13 +13,6 @@ struct kerneleye_bpf *load_kerneleye(){
         return NULL;
     }
 
-    // set log level
-    #ifdef DEBUG_MODE
-    bpf_object__set_log_level(skel->obj, 3);
-    #else
-        bpf_object__set_log_level(skel->obj, 0);
-    #endif
-
     // load the BPF object into kernel
     if(kerneleye_bpf__load(skel)){
         fprintf(stderr, "Failed to load KernelEye program!\n");
