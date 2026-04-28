@@ -52,22 +52,6 @@ const char *ke_severity_str(int severity)
             return "UNKNOWN";
     }
 }
-// Convert detection ID to string
-const char *ke_detection_str(int id)
-{
-    switch(id)
-    {
-        case KE_DET_CONNECT_WITH_EXECVE:
-            return "CONNECT+EXECVE";
-
-        case KE_DET_REVERSE_SHELL:
-            return "REVERSE_SHELL";
-
-        default:
-            return "UNKNOWN";
-    }
-}
-
 // Display a single event in the UI
 void ke_display_event(
     int pid,
