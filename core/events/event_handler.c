@@ -1,10 +1,6 @@
 #include <stdio.h>
 
 #include "../common/common_structs.h"
-#include "../detections/detection_results.h"
-#include "../detections/detection_headers.h"
-#include "../policies/policy_header.h"
-#include "../responses/response_engine.h"
 #include "../ui/display/display.h"
 #include "../ui/banner/banner.h"
 #include "../ui/display/event_buffer.h"

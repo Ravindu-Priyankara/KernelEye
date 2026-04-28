@@ -42,22 +42,12 @@ BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
 # ===============================
 
 CFLAGS = -Wall -Wextra -Werror -g \
-	-I./common -I./helpers -I./events -I./detections -I./policies -I./responses -I./loader -I./maps -I./ui -I./build
+	-I./common -I./helpers -I./events -I./loader -I./maps -I./ui -I./build
 
 USER_SRCS := \
 	main.c \
 	events/event_handler.c \
 	loader/load_kerneleye.c \
-	detections/detection_engine.c \
-	detections/detection_registry.c \
-	detections/reverse_shell/reverse_shell_detector.c \
-	detections/rules/exec_rules.c \
-	policies/evaluate_policy.c \
-	responses/response_engine.c \
-	responses/response_registry.c \
-	responses/alert_response.c \
-	responses/block_response.c \
-	responses/allow_response.c \
 	ui/banner/banner.c \
 	ui/display/display.c \
 	ui/display/event_buffer.c
