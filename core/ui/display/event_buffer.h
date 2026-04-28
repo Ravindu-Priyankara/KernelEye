@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../common/common_structs.h"
-#include "../../detections/detection_results.h"
 #include <stdint.h>
 
 #define MAX_EVENTS 100
