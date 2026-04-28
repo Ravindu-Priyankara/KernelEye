@@ -24,6 +24,8 @@ static int libbpf_print_fn(enum libbpf_print_level level,
                           const char *format, va_list args)
 {
     (void)level;
+    (void)args;
+    (void)format;
     #ifdef DEBUG_MODE
         return vfprintf(stderr, format, args);
     #else
