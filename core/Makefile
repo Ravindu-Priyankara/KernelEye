@@ -44,6 +44,10 @@ BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
 CFLAGS = -Wall -Wextra -Werror -g \
 	-I./common -I./helpers -I./events -I./loader -I./maps -I./ui -I./build
 
+ifeq ($(DEBUG),1)
+CFLAGS += -DDEBUG_MODE
+endif
+
 USER_SRCS := \
 	main.c \
 	events/event_handler.c \

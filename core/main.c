@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include "events/event_handler.h"
 #include "ui/banner/banner.h"
 #include "ui/display/display.h"
@@ -18,10 +19,25 @@ static void handle_signal(int sig)
     stop = 1;
 }
 
+// display logs
+static int libbpf_print_fn(enum libbpf_print_level level,
+                          const char *format, va_list args)
+{
+#ifdef DEBUG_MODE
+    return vfprintf(stderr, format, args);
+#else
+    if (level == LIBBPF_WARN || level == LIBBPF_INFO)
+        return vfprintf(stderr, format, args);
+    return 0;
+#endif
+}
+
 int main(int argc, char *argv[]){
     // avoid taking arguments
     (void)argv; // for fix unused warning
     if(argc != 1) return 1;
+
+    libbpf_set_print(libbpf_print_fn);
 
     // signal handlers
     struct sigaction sa = {0};
