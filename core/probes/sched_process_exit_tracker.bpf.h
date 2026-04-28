@@ -16,9 +16,9 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
     pid = BPF_CORE_READ(task, tgid);
 
     group_dead = ctx->group_dead;
-    if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
+    if(sanitize_the_pid(pid) != ERR_SUCCESS) goto cleanup;
     cid = bpf_map_lookup_elem(&ctx_map, &pid);
-    if(!cid) return 0;
+    if(!cid) goto cleanup;
 
     if(!group_dead) goto cleanup;
     // extract and clear context state map
