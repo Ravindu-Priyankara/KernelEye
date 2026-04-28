@@ -5,13 +5,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "detections/rules/exec_rules.h"
 #include "events/event_handler.h"
 #include "ui/banner/banner.h"
 #include "ui/display/display.h"
-
-// ruleset macro
-#define KE_RULES_PATH "../detections/config/rules.conf"
 
 static volatile sig_atomic_t stop;
 struct stats ke_stats = {0}; // initialize all counts to 0
