@@ -192,8 +192,11 @@ struct ke_suspicious_event {
 ******* Scratch Buffer *******
 ******************************/
 
+#define SB_SIZE 64
+
+// reduce to 64bytes for reduce cost
 struct scratch_buf{
-    char buffer[256];
+    char buffer[64];
 };
 
 // stages

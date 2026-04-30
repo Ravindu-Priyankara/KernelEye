@@ -25,9 +25,9 @@
 #include "../probes/openat_tracker.bpf.h"
 #include "../probes/openat2_tracker.bpf.h"
 #include "../probes/sched_process_exit_tracker.bpf.h"
+#include "../probes/execve_tracker.bpf.h"
 
 // kprobe
-#include "../probes/execve_kprobe.bpf.h"
 #include "../probes/dup_kprobe.bpf.h"
 
 // lsm
