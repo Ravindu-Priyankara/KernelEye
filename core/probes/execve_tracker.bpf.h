@@ -53,66 +53,64 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
 
     // extract the filename
     len = bpf_probe_read_user_str(sb->buffer, SB_SIZE, filename);
-    if(len > 0){
+    if(len <= 1) return 0;
 
+    /*
+    *   for extract last name:
+    *       - Usually filename came like this
+    *           - /usr/bin/last_name
+    *           - /bin/last_name
+    */
+    #pragma unroll
+    for(int i = 0; i < SB_SIZE; i++){
+        if(i >= len) break; // stop after reach real size(runtime)
+        if(sb->buffer[i] == '\0') break; // null terminator
+        if(sb->buffer[i] == '/' && (i+1) < SB_SIZE){// need to prove bounds
+            name_idx = i + 1;
+        } 
+    }
+
+    // check sh
+    if(
         /*
-        *   for extract last name:
-        *       - Usually filename came like this
-        *           - /usr/bin/last_name
-        *           - /bin/last_name
+        *   sh\0 thats why 3 bytes. otherwise it will some letter + null terminator
         */
-        #pragma unroll
-        for(int i = 0; i < SB_SIZE; i++){
-            if(i >= len) break; // stop after reach real size(runtime)
-            if(sb->buffer[i] == '\0') break; // null terminator
-            if(sb->buffer[i] == '/' && (i+1) < SB_SIZE){// need to prove bounds
-                name_idx = i + 1;
-            } 
+        name_idx + 2 <= len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "sh", 2) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // check php
+    if(
+        name_idx + 3 <= len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "php", 3) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // check bash and perl
+    if(
+        name_idx + 4 <= len // need to prove no OOB
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "bash", 4) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
         }
 
-        // check sh
-        if(
-            /*
-            *   sh\0 thats why 3 bytes. otherwise it will some letter + null terminator
-            */
-            name_idx + 2 <= len
-        ){
-            if(__builtin_memcmp(&sb->buffer[name_idx], "sh", 2) == 0){
-                update_state(ke_state, INTERPRETER_REAL_SEEN);
-            }
+        if(__builtin_memcmp(&sb->buffer[name_idx], "perl", 4) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
         }
+    }
 
-        // check php
-        if(
-            name_idx + 3 <= len
-        ){
-            if(__builtin_memcmp(&sb->buffer[name_idx], "php", 3) == 0){
-                update_state(ke_state, INTERPRETER_REAL_SEEN);
-            }
+    // check python
+    if(
+        name_idx + 6 < len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "python", 6) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
         }
-
-        // check bash and perl
-        if(
-            name_idx + 4 <= len // need to prove no OOB
-        ){
-            if(__builtin_memcmp(&sb->buffer[name_idx], "bash", 4) == 0){
-                update_state(ke_state, INTERPRETER_REAL_SEEN);
-            }
-
-            if(__builtin_memcmp(&sb->buffer[name_idx], "perl", 4) == 0){
-                update_state(ke_state, INTERPRETER_REAL_SEEN);
-            }
-        }
-
-        // check python
-        if(
-            name_idx + 6 < len
-        ){
-            if(__builtin_memcmp(&sb->buffer[name_idx], "python", 6) == 0){
-                update_state(ke_state, INTERPRETER_REAL_SEEN);
-            }
-        }
-
     }
 
     // extract the argv[0] pointer
