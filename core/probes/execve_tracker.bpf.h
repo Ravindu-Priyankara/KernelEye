@@ -125,11 +125,11 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
         if(len > 0){
 
             if(
-                (__builtin_memcmp(&sb-buffer, "bash", 4) == 0) || 
-                (__builtin_memcmp(&sb->buffer, "python", 6) == 0) ||
-                (__builtin_memcmp(&sb->buffer, "perl", 4) == 0) ||
-                (__builtin_memcmp(&sb->buffer, "php", 3)) ||
-                (__builtin_memcmp(&sb->buffer, "sh", 2) == 0)
+                (__builtin_memcmp(sb->buffer, "bash", 4) == 0) || 
+                (__builtin_memcmp(sb->buffer, "python", 6) == 0) ||
+                (__builtin_memcmp(sb->buffer, "perl", 4) == 0) ||
+                (__builtin_memcmp(sb->buffer, "php", 3)) ||
+                (__builtin_memcmp(sb->buffer, "sh", 2) == 0)
             ){
                 update_state(ke_state, INTERPRETER_ARGV_SEEN);
             }
