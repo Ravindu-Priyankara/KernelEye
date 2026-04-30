@@ -63,9 +63,7 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
     */
     #pragma unroll
     for(int i = 0; i < SB_SIZE; i++){
-        if(i >= len) break; // stop after reach real size(runtime)
-        if(sb->buffer[i] == '\0') break; // null terminator
-        if(sb->buffer[i] == '/' && (i+1) < SB_SIZE){// need to prove bounds
+        if(i < len && sb->buffer[i] == '/' && (i+1) < SB_SIZE){// need to prove bounds
             name_idx = i + 1;
         } 
     }
@@ -106,7 +104,7 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
 
     // check python
     if(
-        name_idx + 6 < len
+        name_idx + 6 <= len
     ){
         if(__builtin_memcmp(&sb->buffer[name_idx], "python", 6) == 0){
             update_state(ke_state, INTERPRETER_REAL_SEEN);
