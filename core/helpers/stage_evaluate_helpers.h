@@ -44,6 +44,33 @@ static __always_inline int rule_suspicious_network_activities
         (delta < KE_WINDOW_NS);
 }
 
+/*
+*   detection rule for interpreter type network shells
+*
+*   Combines
+*       - connect()
+*       - execve()
+*       - interpreter real seen()
+*       - shell inline or interpreter argv
+*       - time window
+*
+*   Maybe this rule will block legit dev tools so we need carefully tune up
+*/
+static __always_inline int rule_interpreter_network_shell
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & CONNECT_SEEN) &&
+        (flags & EXECVE_SEEN) &&
+        (flags & INTERPRETER_REAL_SEEN) &&
+        (
+            (flags & SHELL_INLINE_SEEN) ||
+            (flags & INTERPRETER_ARGV_SEEN)
+        ) &&
+        (delta < KE_WINDOW_NS);
+}
+
 // confimed category
 
 static __always_inline int rule_confirmed_pty_shell
@@ -167,6 +194,10 @@ static __always_inline void evaluate_rules(struct ke_ctx_state *s){
     }
 
     if(rule_suspicious_network_activities(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_HIGH_RISK);
+    }
+
+    if(rule_interpreter_network_shell(s->flags, delta)){
         ADVANCE_STAGE(&s->stage, STAGE_HIGH_RISK);
     }
 
