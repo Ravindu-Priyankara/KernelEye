@@ -48,10 +48,14 @@ int openat_handler(struct trace_event_raw_sys_enter *ctx){
         * Reduces cost a lot
         * Now, memory compares only if this passes.
         */
-        if(!(scratch_buf->buffer[0] == '/' && scratch_buf->buffer[5] == 'p')) return 0;
+        if(!(scratch_buf->buffer[0] == '/' && (scratch_buf->buffer[5] == 'p' || scratch_buf->buffer[5] == 't'))) return 0;
         // PTY creation signal
-        if(__builtin_memcmp(scratch_buf->buffer, "/dev/ptmx", 10) == 0){
+        if(__builtin_memcmp(scratch_buf->buffer, "/dev/ptmx", 9) == 0){
             update_state(ke_state, PTMX_SEEN);
+        }
+
+        if(__builtin_memcmp(scratch_buf->buffer, "/dev/tcp", 8) == 0){
+            update_state(ke_state, NETWORK_INTENT_SEEN);
         }
     }
 
