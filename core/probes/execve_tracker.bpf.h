@@ -36,6 +36,9 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
 
     // assign data to map
     ke_state->last_time = execve_ts;
+    if(!(ke_state->flags & EXECVE_SEEN)){
+        update_state(ke_state, EXECVE_SEEN);
+    }
 
     // selected events pass to ring buffer
     if (ke_state->stage == STAGE_BEHAVIORAL)
