@@ -99,6 +99,33 @@ static __always_inline int rule_confimed_pty_relay_shell
        (delta < KE_WINDOW_NS);
 }
 
+/*
+ * Detect confirmed interpreter-based reverse shells
+ * (e.g. bash -i >& /dev/tcp/...).
+ *
+ * Combines:
+ *  - connect() observation
+ *  - dup2() redirection behavior
+ *  - socket correlation
+ *  - interpreter argv patterns (bash -i)
+ *  - inline shell redirection detection
+ *
+ * Uses timing constraint (delta < KE_WINDOW_NS)
+ * to reduce false positives.
+ */
+static __always_inline int rule_confirmed_interpreter_based_reverse_shells
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & CONNECT_SEEN) && 
+        (flags & DUP2_SEEN) &&
+        (flags & SOCKET_MATCH_SEEN) && 
+        (flags & INTERPRETER_ARGV_SEEN) && 
+        (flags & SHELL_INLINE_SEEN) &&
+        (delta < KE_WINDOW_NS);
+}
+
 static __always_inline void evaluate_rules(struct ke_ctx_state *s){
 
     __u64 now = get_trigger_time();
@@ -130,6 +157,10 @@ static __always_inline void evaluate_rules(struct ke_ctx_state *s){
     }
 
     if(rule_confimed_pty_relay_shell(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
+    }
+
+    if(rule_confirmed_interpreter_based_reverse_shells(s->flags, delta)){
         ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
     }
 }
