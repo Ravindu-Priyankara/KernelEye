@@ -126,6 +126,32 @@ static __always_inline int rule_confirmed_interpreter_based_reverse_shells
         (delta < KE_WINDOW_NS);
 }
 
+/*
+*   Dection rule for basic shells
+*   
+*   Combines
+*       - connect()
+*       - dup2()
+*       - connect fd == dup old fd
+*       - execve()
+*/
+static __always_inline int rule_confirmed_basic_reverse_shells
+(
+    __u64 flags,
+    __u64 delta
+){
+    return (flags & CONNECT_SEEN) &&
+        (
+            (flags & DUP2_SEEN) || 
+            (flags & DUP3_SEEN) || 
+            (flags & DUP_SEEN)
+        ) &&
+        (flags & SOCKET_MATCH_SEEN) &&
+        (flags & EXECVE_SEEN) &&
+        (delta < KE_WINDOW_NS);
+}
+
+
 static __always_inline void evaluate_rules(struct ke_ctx_state *s){
 
     __u64 now = get_trigger_time();
@@ -161,6 +187,10 @@ static __always_inline void evaluate_rules(struct ke_ctx_state *s){
     }
 
     if(rule_confirmed_interpreter_based_reverse_shells(s->flags, delta)){
+        ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
+    }
+
+    if(rule_confirmed_basic_reverse_shells(s->flags, delta)){
         ADVANCE_STAGE(&s->stage, STAGE_CONFIRMED);
     }
 }
