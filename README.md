@@ -65,7 +65,7 @@ Instead of relying on single indicators, it uses:
 
 ## ⚡ Architecture
 
-<img src="docs/02_Architecture/images/System_Overview.png">
+<img src="./docs/02_Architecture/images/System_Overview.png">
 
 ---
 

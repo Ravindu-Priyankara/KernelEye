@@ -14,36 +14,36 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 104 bytes
+*    Result : Maximum stack depth = 112 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10 -0           : scratch / temporary usage
+* │  r10              : frame pointer (read-only)
 * │
-* │  r10 -8           : struct sockaddr_in6 sin6_port
-* │  r10 -16          : struct sockaddr_in6 sin6_addr part
-* │  r10 -24          : struct sockaddr_in6 sin6_addr part / struct sockaddr_in sin
-* │  r10 -32          : struct sockaddr_in6 / struct sockaddr_in overlap / parent ptr temp
-* │  r10 -36          : __u32 ppid temporary
-* │  r10 -48          : struct sockaddr sa
-* │  r10 -56          : struct sockaddr sa (rest)
-* │  r10 -60          : event->addr.port (ipv4/ipv6)
-* │  r10 -64          : struct connect_event event (ipv6 part)
-* │  r10 -68          : connect_event event (ipv6 part)
-* │  r10 -72          : connect_event event (ipv4/ipv6 part)
-* │  r10 -76          : connect_event event (ipv4 part)
-* │  r10 -80          : event->addr.family
-* │  r10 -88          : event->net_ts
-* │  r10 -96          : event->ppid
-* │  r10 -100         : pid / general temporary storage
+* |  r10 -8           : sockaddr_in6 sin6{}
+* |  r10 -16          : sockaddr_in6 sin6{}
+* |  r10 -24          : sockaddr_in sin{}, sockaddr_in6 sin6{}, ke_ctx_state
+* |  r10 -32          : sockaddr_in sin{}, sockaddr_in6 sin6{}, pointer for hold task struct parent process data, counter value , ke_ctx_state
+* |  r10 -36          : tmp used for hold ppid;
+* |  r10 -64          : IPv6 first 8 byte {Network Prefix}
+* |  r10 -72          : IPv6 second 8 byte {Interface ID}
+* |  r10 -78          : event->addr.port
+* |  r10 -80          : event->addr.family
+* |  r10 -88          : event.net_ts
+* |  r10 -92          : event.ppid
+* |  r10 -96          : event.fd
+* |  r10 -104         : ppid, key
 * │
-* Total stack used: 104 bytes
+* Logical stack usage : 104 bytes
+* Verifier stack depth: 112 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
-*  - sin and sin6 overlap in memory since their lifetimes don't conflict
+*  - sin and sin6 reuse the same stack region (-32 area)
+*  - safe because verifier sees mutually exclusive branches (family check)
+*  - NOT classic lifetime-based reuse, but branch-isolated reuse
 *  - All u64 writes are 8-byte aligned, verifier-friendly
 *  - For larger structs, consider BPF maps instead of stack
 *  - Helps debugging, verifier checks, and future maintenance
@@ -53,21 +53,17 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 143 instructions
+*    Result: 223 instructions
 *
 *  Byte Size:
-*    xlated 1144B  (1144 / 8 = 143 instructions)
+*    xlated 1784B  (1784 / 8 = 223 instructions)
 * ===========================================================
 */
 
 
 /*
 * This tracepoint is triggered when programs use the `connect syscall`. 
-* Argument info: cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
-* If IPV4:
-*   1. Stack Allocation: 120 bytes
-* If IPV6
-*   1. Stack Allocation: 136 bytes
+* Argument info: sudo cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_connect/format
 */
 SEC("tracepoint/syscalls/sys_enter_connect")
 int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
@@ -82,6 +78,12 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
     * Stack Allocation: 40 bytes
   */
   struct connect_event event = {};
+
+  /*
+  *   This struct used for check state already declared or not
+  *   Stack Allocation: 8 bytes
+  */
+  struct ke_ctx_state *ke_state;
 
   /*
     * This variable used for handle return values.
@@ -104,8 +106,62 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   */
   __u64 net_ts;
 
+  /*
+  *  This variable used for hold context id
+  *   Stack Allocation : 8 bytes
+  */
+  __u64 cid;
+
   // Check that there was data of `struct sockaddr *uservaddr`
   if(!ctx->args[1]) return 0;
+
+  /*
+  * Defined in:
+  *   - helpers/common_helpers.h
+  */
+  pid = get_tgid(); // process id
+  ppid = get_ppid(); // parent process id
+  net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
+
+    //sanitize the data
+  /*
+  * Sanitize the pid and ppid.
+  *
+  * Defined in:
+  *   - common/common/validation.h
+  *
+  * Purpose:
+  *   - Avoid track the kernel threads or idle tasks
+  */
+  if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
+  if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
+
+  /*
+  * This helper is used to get the context ID. And context ID is the key for storing our syscall flags inside the ke_ctx_state.
+  */
+  if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
+
+  // Assign values to the connect event struct and later save it via the connect hash map.
+  event.ppid = ppid;
+  event.net_ts = net_ts;
+  event.fd = (__s32)ctx->args[0]; // cast to signed 32 bit.
+
+  // read values from map
+  ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+  if(!ke_state){
+    // get temporary struct for update map
+    // Stack Allocation: 16 bytes
+    struct ke_ctx_state zero = {};
+    // quickly update the map
+    bpf_map_update_elem(&ctx_state_map, &cid, &zero, BPF_NOEXIST);
+    // get the pointer for access data
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    // failure cases
+    if(!ke_state) return 0;
+
+  }
+
+  ke_state->last_time = net_ts;
 
   // Read the generic pointer safely
   ret = bpf_probe_read_user(&sa, sizeof(sa), (void *)ctx->args[1]); // read struct sockaddr *uservaddr
@@ -136,31 +192,37 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   ret = parse_socket_address(ret, (void *)ctx->args[1], &event);
   if(ret < 0) return 0;
 
-  /*
-  * Defined in:
-  *   - helpers/common_helpers.h
-  */
-  pid = get_tgid(); // process id
-  ppid = get_ppid(); // parent process id
-  net_ts = get_trigger_time(); // connect syscall triggered time(nano seconds)
+  // for reduce noice
+  if(event.addr.family == FAMILY_IPV4 || event.addr.family == FAMILY_IPV6){
+    // check there was a connect flag
+    if(!(ke_state->flags & CONNECT_SEEN)){
+      update_state(ke_state, CONNECT_SEEN);
+    }
+  }
 
+  // for localhost
+  if(event.addr.family == FAMILY_IPV4 && event.addr.ipv4 == LOOPBACK_IPV4 && !(ke_state->flags & LOOPBACK_IPV4_SEEN)){
+    update_state(ke_state, LOOPBACK_IPV4_SEEN);
+  }
 
-  //sanitize the data
-  /*
-  * Sanitize the pid and ppid.
-  *
-  * Defined in:
-  *   - common/common/validation.h
-  *
-  * Purpose:
-  *   - Avoid track the kernel threads or idle tasks
-  */
-  if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
-  if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
+  // private ip
+  if(event.addr.family == FAMILY_IPV4 && !(ke_state->flags & PRIVATE_IP_SEEN)){
+    if(!is_private_ipv4(event.addr.ipv4) && event.addr.ipv4 != LOOPBACK_IPV4){
+      update_state(ke_state, PRIVATE_IP_SEEN);
+    }
+  }
 
-  // Assign values to the connect event struct and later save it via the connect hash map.
-  event.ppid = ppid;
-  event.net_ts = net_ts;
+  // suspicious ports
+  if(!(ke_state->flags & SUSPICIOUS_PORT_SEEN)){
+    if(is_suspicious_port(event.addr.port)) {
+      update_state(ke_state, SUSPICIOUS_PORT_SEEN);
+    }
+  }
+
+  // ephemeral port
+  if(is_ephemeral_port(event.addr.port) && !(ke_state->flags & EPHEMERAL_PORT_SEEN)){
+    update_state(ke_state, EPHEMERAL_PORT_SEEN);
+  }
 
   /*
   * Save the connect struct via connect hash map
@@ -169,7 +231,7 @@ int connect_enter_handler(struct trace_event_raw_sys_enter *ctx){
   * Developer Note:
   *   - If the same program triggers this syscall twice, it will not update the data. So if we need to fix that, switch to the force_update helper function.
   */
-  ret = update_map_element(&connect_map, &pid, &event, BPF_ANY);
+  ret = update_map_element(&connect_map, &cid, &event, BPF_ANY);
   if(ret != ERR_SUCCESS) return ERR_SUCCESS;
 
   // for debugging

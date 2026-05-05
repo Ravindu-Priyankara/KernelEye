@@ -14,25 +14,27 @@
 *
 *  Real Verifier Stack Depth:
 *    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 32 bytes
+*    Result : Maximum stack depth = 48 bytes
 *
 * ==================== KernelEye eBPF Stack Map (r10) ====================
 *
 * r10: frame pointer (top of stack)
 * │
-* │  r10 -0           : scratch / temporary usage
+* │  r10              : frame pointer (read-only)
 * │
-* │  r10 -4           : __u32 ppid
-* |  r10 -8           : __u32 pid
-* |  r10 -12          : __u8 dup2_state.stdio_redirects
-* |  r10 -16          : __u32 dup2_state.ppid
-* |  r10 -24          : __u64 dup2_state.last_dup2_ts
+* |  r10 -4           : temp hold pid for sanitize(u32)
+* |  r10 -8           : pid(tgid, 4 bytes)
+* |  r10 -16          : reused slot = ppid(u32), key(u32), cid (u64)
+* |  r10 -24          : start of dup2_state struct, stdio_redirects (u8), padding follows
+* |  r10 -32          : temp struct space (8 bytes chunk)
+* |  r10 -40          : reused heavily= parent pointer (u64), new_cid (u64), struct zero padding, dup2_state temp storage
 * │
-* Total stack used: 32 bytes
+* Logical stack usage : 40 bytes
+* Verifier stack depth: 48 bytes (8-byte aligned)
 * Max allowed: 512 bytes -> safe 
 *
 * Notes:
-*  - r10 -12 offset has 1 byte but veryfier align it with additional 3 bytes.
+*  - few slots reused, and stdio_redirects (u8) followed by compiler-inserted padding for alignment
 *  - Helps debugging, verifier checks, and future maintenance
 * ========================================================================
 *
@@ -40,10 +42,10 @@
 *
 *  Real Instruction Count:
 *    sudo bpftool prog dump xlated id <id>
-*    Result: 82 instructions
+*    Result: 167 instructions
 *
 *  Byte Size:
-*    xlated 656B  (656 / 8 = 82 instructions)
+*    xlated 1336B  (1336 / 8 = 167 instructions)
 * =========================================================================
 */
 
@@ -53,10 +55,16 @@ int dup2_enter_handler(
 )
 {
     /*
-    *   This struct use for hold our dup2 data
+    *   This struct used for check state already declared or not
     *   Stack Allocation: 8 bytes
     */
-    struct dup2_state *event;
+    struct ke_ctx_state *ke_state;
+
+    /*
+    *   For hold dup2 data
+    *   Stack Allocation: 8 bytes
+    */
+    struct dup_state *dup2_state;
 
     /* 
     * This variable used for hols tgid.
@@ -85,8 +93,27 @@ int dup2_enter_handler(
     /*
     * This variable use for hold file descriptor;
     * Stack Allocation: 4 bytes
+    * ABI NOTE:
+    *   - For ABI correctness, this should be signed.
     */
-    __u32 fd_new;
+    __s32 fd_new; 
+
+    /*
+    * For hold old fd.
+    * value of old fd:
+    *   - can check connect fd is equal to dup2 old fd.
+    *   - That helps to prevent fake connect syscalls-based bypass.
+    * Stack Allocation: 4 bytes
+    */
+    __s32 old_fd;
+
+    /*
+    *  This variable used for hold context id
+    *  Stack Allocation : 8 bytes
+    */
+    __u64 cid;
+
+    struct connect_event *conn = NULL;
 
     /*
     * Defined in:
@@ -95,34 +122,87 @@ int dup2_enter_handler(
     pid = get_tgid();
     ppid = get_ppid();
     dup2_ts = get_trigger_time(); // capture the timestamp
-    fd_new = (__u32)ctx->args[1];   // casting is important because it return __u64
+    fd_new = (__s32)ctx->args[1]; // casting is important because it return __u64
+    old_fd = (__s32)ctx->args[0]; 
 
 
-    // Only track stdin/out/err, and there were no negative file descriptors.
-    if(fd_new > 2) return 0;
+    // Only track stdin/out/err, Negative FDs are ignored for safety.
+    // After converting to signed, we should also check negative cases.
+    if(fd_new < 0 || fd_new > 2) return 0;
 
     //sanitize the data
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
     if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
 
-    // This helps to prevent always create new struct with zero initialized. Because we need increase existing redirectors.
-    event = check_map_data_availability(&dup2_map, &pid);
-    if(event){
-        // rewrite the values if data exists
-        event->last_dup2_ts = dup2_ts;
-        event->stdio_redirects++;   // for a reverse shell, we strictly check file descriptor >= 2.
-    }else{
-        /*
-        *   This struct use for hold our dup2 data
-        *   Stack Allocation: 16 bytes
-        */
-        struct dup2_state new_state = {};
-        new_state.last_dup2_ts = dup2_ts;
-        new_state.ppid = ppid;
-        new_state.stdio_redirects = 1;
+    /*
+    * This helper is used to get the context ID. And context ID is the key for storing our syscall flags inside the ke_ctx_state.
+    */
+    if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
 
-        ret = update_map_element(&dup2_map, &pid, &new_state, BPF_ANY); // save dup2 event on dup2 map
-        if(ret != ERR_SUCCESS) return ERR_SUCCESS;
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    if(!ke_state){
+        // make a copy and update it. 
+        // Stack Allocation : 16 bytes
+        struct ke_ctx_state zero = {};
+        bpf_map_update_elem(&ctx_state_map, &cid, &zero, BPF_NOEXIST);
+        ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+        if(!ke_state) return 0;
+    }
+
+    // we need check is there connect to internet befor go further
+    if(!(ke_state->flags & SOCKET_SEEN)) return 0;
+
+    // extract the connect details
+    if(ke_state->flags & CONNECT_SEEN){
+        conn = bpf_map_lookup_elem(&connect_map, &cid);
+    }
+
+    // for reduce false positives
+    if(conn){
+        __u64 delta = dup2_ts > conn->net_ts
+        ? dup2_ts - conn->net_ts
+        : conn->net_ts - dup2_ts;
+
+        // connect + dup2 should trigger withing 5 seconds
+        if(delta > 5000000000ULL) return 0;
+    }
+
+    // update the map
+    ke_state->last_time = dup2_ts;
+
+    // check dup2 map data availability
+    dup2_state = bpf_map_lookup_elem(&dup_map, &cid);
+    if(!dup2_state){
+        // stack Allocation: 24 bytes
+        struct dup_state new_dup2_state = {};
+        // for counter redirects
+        new_dup2_state.stdio_redirects = 0;
+        bpf_map_update_elem(&dup_map, &cid, &new_dup2_state, BPF_NOEXIST);
+        dup2_state = bpf_map_lookup_elem(&dup_map, &cid);
+        if(!dup2_state) return 0;
+    }
+
+    // Update the dup2_state
+    dup2_state->last_dup_ts = dup2_ts;
+    dup2_state->ppid = ppid;
+    dup2_state->oldfd = old_fd;
+
+    // for reduce false positives
+    if(conn && conn->fd == old_fd){
+        dup2_state->stdio_redirects++;
+        update_state(ke_state, SOCKET_MATCH_SEEN);
+    }
+
+    if(!(ke_state->flags & DUP2_SEEN)){
+        update_state(ke_state, DUP2_SEEN);
+    }
+
+    //fd redirects 
+    if(dup2_state->stdio_redirects >= 2 
+        && (ke_state->flags & SOCKET_MATCH_SEEN) 
+        && !(ke_state->flags & FD_REDERECTS_SEEN))
+    {
+        update_state(ke_state, FD_REDERECTS_SEEN);
     }
 
     // for debugging

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 struct stats {
     int events;
     int reverse_shells;
@@ -13,8 +15,7 @@ void ke_display_event(
     int pid,
     int type,
     int severity,
-    int detection_id,
-    int score
+    uint64_t flags
 );
 
 void ke_print_stats(struct stats *s);

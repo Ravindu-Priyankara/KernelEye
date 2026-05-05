@@ -64,6 +64,111 @@ static __always_inline __u32 get_ppid(void){
 }
 
 /*
+*   This helper use for get Context id. 
+*   Arguments:
+*       - Pointer for defined context id variable
+*   Return:
+*       - success = 0 and failures = -1
+*   Stack Allocation: 16 bytes;
+*   Atomic builtin function documentation:
+*       - https://docs.ebpf.io/linux/concepts/concurrency/
+*
+*   BUG NOTE:
+*       - Previously, we assumed the first Context ID is 1, but actually `__sync_fetch_and_add(counter, 1);` returns the old value first. So it means the first Context ID is always 0.
+*
+*       Fix:
+*           - Redefine the API and Included:
+*               - function return success{0} or Failure{-1} not context id.
+*               - directly assign the values to given pointer
+*/
+static __always_inline int get_cid(__u64 *new_cid){
+    /*
+    *   We have only one entries and it key is 0.
+    *   4 bytes of stack allocation.
+    */
+    __u32 key = 0 ;
+
+    /*
+    *   Get and assign the value of the cid_counter array map to a pointer.
+    *   8 bytes of stack allocation
+    */
+    __u64 *counter = bpf_map_lookup_elem(&cid_counter, &key);
+    if(!counter){
+        return ERR_FAILURE;
+    }
+
+    // atomic: assign old value, then increments counter by 1.
+    *new_cid = __sync_fetch_and_add(counter, 1);
+    return ERR_SUCCESS;
+
+}
+
+/*
+*   This helper is used for get the cid value.
+*   Benefits:
+*       - check cid
+*       - generate cid
+*       - store cid
+*   Arguments:
+*       - pid(tgid)
+*       - pointer for declared cid variable
+*   Return:
+*       - success{0} or Failure{-1}
+*   Stack Allocation: 16 bytes
+*/
+static __always_inline int get_or_create_cid(__u32 pid, __u64 *new_cid){
+    /*
+    *   For hold context hash map return pointer
+    *   8 bytes of stack allocation
+    */
+    __u64 *cid_ptr;
+
+    /*
+    *   For hold newly created context id
+    *   8 bytes of stack allocation
+    */
+    __u64 cid;
+
+    // Get the context ID if it's already stored.
+    cid_ptr = bpf_map_lookup_elem(&ctx_map, &pid);
+    if(cid_ptr){
+        *new_cid = *cid_ptr;    // assign the context id to given pointer
+        return ERR_SUCCESS;
+    }
+
+    // generate a new cid.
+    if(get_cid(&cid) != ERR_SUCCESS) return ERR_FAILURE;
+
+    /*
+    *   Store generated CID, and used direct update because we already checked if it is stored or not. 
+    *   So there wasn't a point in using the `update_map_element` helper function.
+    *
+    *   Developer Note:
+    *       - Used `BPF_NOEXIST` for prevent race condition.
+    *   ex: 
+    *       Two threads could do:
+    *           Thread A -> no CID -> create CID 5
+    *           Thread B -> no CID -> create CID 6
+    *       and both assign different CID's to same PID. 
+    *       
+    */
+    if(bpf_map_update_elem(&ctx_map, &pid, &cid, BPF_NOEXIST)!= 0){
+        // If another thread inserted it. We just return the Context ID that was inserted rather than just returning 0;
+        cid_ptr = bpf_map_lookup_elem(&ctx_map, &pid);
+        if(cid_ptr){
+            *new_cid = *cid_ptr;
+            return ERR_SUCCESS;
+        }
+
+        return ERR_FAILURE; // real failure
+    }
+
+    *new_cid = cid;
+
+    return ERR_SUCCESS;
+}
+
+/*
 *   This function use for check map data availability
 *   Arguments:
 *       1. map
@@ -146,3 +251,4 @@ static __always_inline long delete_map_elements(void *map, const void *key){
     long ret = bpf_map_delete_elem(map, key);
     return ret == 0 ? ERR_SUCCESS : ERR_FAILURE;
 }
+

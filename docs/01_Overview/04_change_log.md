@@ -5,6 +5,26 @@ All notable changes to Kernel Eye are documented in this file.
 The format is inspired by Keep a Changelog and follows semantic versioning principles.
 
 ---
+## [v1.1.0] - Major Internal Improvements & ABI Stabilization(2026-03-25)
+
+- Added
+  - Introduced CID-based tracking model (replacing PID-only correlation)
+  - Added bitmask-based syscall state tracking (connect, execve, dup2)
+  - Added strict ABI validation using _Static_assert (size, offset, alignment)
+  - Added a new filter for the kernel side to work efficiently(use bitmask flags).
+
+- Changed
+  - Reworked shared structs to ensure stable kernel ↔ userland ABI
+  - Standardized padding using __reserved fields for future extensibility
+  - Improved ke_sockaddr layout for consistent IPv4/IPv6 handling
+  - Removed kernel side old filter(is_reverse_shell helper). 
+
+- Improved
+  - Detection accuracy through multi-syscall correlation
+  - Memory layout predictability across compiler versions
+  - Code readability and structural consistency
+
+
 
 ## [v1.0.0] - Initial Release (2026-03-25)
 
@@ -48,6 +68,8 @@ The format is inspired by Keep a Changelog and follows semantic versioning princ
 - Enhanced syscall correlation engine
 - Process relationship mapping (parent-child tracking)
 - Detection rule abstraction layer
+- change hash map to LRU hashmap(best for map filling issue)
+- change sigterm -> sigkill or better approach.
 
 ### Optimization Ideas
 - Reduce event size by shrinking filename buffer (e.g., 255 → 64 bytes)

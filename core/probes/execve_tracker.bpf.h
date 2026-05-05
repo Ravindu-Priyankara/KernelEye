@@ -1,148 +1,202 @@
-/* SPDX-License-Identifier: GPL-2.0 */
-/*
-* Kernel Eye - eBPF Runtime Security Framework
-*
-* File: execve_tracker.bpf.h
-* Description:
-*   This is an eBPF program that is used to track `execve syscall`.
-*   This keep record of every process that triggered the `execve syscall`.
-*
-* Author: Ravindu Priyankara
-* Year: 2026
-*
-* ============ Stack Usage ===============================================
-*
-*  Real Verifier Stack Depth:
-*    Command: sudo bpftool prog dump xlated id <id>
-*    Result : Maximum stack depth = 24 bytes
-*
-* ==================== KernelEye eBPF Stack Map (r10) ====================
-*
-* r10: frame pointer (top of stack)
-* │
-* │  r10 -0           : scratch / temporary usage
-* │
-* |  r10 -8            : struct task_struct *parent, pointer for extract parent ppid(helpers/common_helpers.h)
-* |  r10 -12           : __u32 ppid {inside the parent ppid extraction helper function}
-* |  r10 -16           : __u32 pid
-* │  r10 -20           : __u32 key
-* │
-* Total stack used: 24 bytes
-* Max allowed: 512 bytes -> safe 
-*
-* Notes:
-*  - Stack size = max depth reached thats why additional 4 bytes have => [8 bytes pointer][4 bytes ppid][4 bytes pid][4 bytes key][4 bytes unused] , usage = 20 bytes but allocation 24 bytes
-*  - Helps debugging, verifier checks, and future maintenance
-* ========================================================================
-*
-* ============ Instruction Count =========================================
-*
-*  Real Instruction Count:
-*    sudo bpftool prog dump xlated id <id>
-*    Result: 277 instructions
-*
-*  Byte Size:
-*    xlated 2216B  (2216 / 8 = 277 instructions)
-* =========================================================================
-*/
 
 SEC("tracepoint/syscalls/sys_enter_execve")
-int execve_enter_handler(struct trace_event_raw_sys_enter *ctx){
+int execve_enter(struct trace_event_raw_sys_enter *ctx){
 
-    /*
-    *   This variable use for hold tgid.
-    *   Stack Allocation: 4 bytes
-    */
-    __u32 pid;
-    /*
-    *   This variable use for hold parent tgid
-    *   Stack Allocation: 4 bytes
-    */
-    __u32 ppid;
+    //  needs to cast because `trace_event_raw_sys_enter` has args type is unsigned long
+    const char *filename = (const char *)ctx->args[0]; 
+    const char *const *argv = (const char *const *)ctx->args[1];
+    const char *const *envp = (const char *const *)ctx->args[2];
 
-    /*
-    *   This variable is used for passing the key to the PERCPU map.
-    *   Stack Allocation: 4 bytes
-    */
-    __u32 key = 0;
-
-    /*
-    *   This variable use for hold execve trigger timestamp
-    *   Stack Allocation: 8 bytes
-    */
+    __u64 cid;
     __u64 execve_ts;
-
-    /*
-    *   This struct hold the execve data.
-    *   Stack Allocation: 8 bytes
-    */
-    struct execve_event *tmp_event;
-
-    /*
-    *   This variable use for error handling.
-    *   Stack Allocation: 4 bytes
-    */
+    __u32 key = 0;
+    __u32 pid;
+    const char *p;
+    struct scratch_buf *sb;
+    struct ke_ctx_state *ke_state;
     int ret;
+    int len;
+    int name_idx = 0;
 
-
-    /*
-    * Defined in:
-    *   - helpers/common_helpers.h
-    */
+    // assign the data
     pid = get_tgid();
-    ppid = get_ppid();
     execve_ts = get_trigger_time();
-
-    // sanitize the pid and ppid
     if(sanitize_the_pid(pid) != ERR_SUCCESS) return 0;
-    if(sanitize_the_pid(ppid) != ERR_SUCCESS) return 0;
+    if(get_or_create_cid(pid, &cid) != ERR_SUCCESS) return 0;
 
-    // check percpu map available
-    tmp_event = check_map_data_availability(&tmp_execve_map, &key);
-    if(!tmp_event) return 0;
+    // extract the state
+    ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+    if(!ke_state){
+        struct ke_ctx_state ke_new_state = {};
 
-    /*
-    * BUG NOTE:
-    * Previously, execve events were dropped because:
-    * - argv/envp could be NULL
-    * - bpf_probe_read_user_str fails silently in that case
-    * - map update logic skipped duplicate keys
-    *
-    * Fix:
-    * - handle NULL safely
-    * - ensure event always written
-    * - force update maps
-    */
-    // copy to scratchpad(PERCPU ARRAY), This removed stack pressure otherwise it eats half of the eBPF stack limit.{filename[256]}
-    ret = bpf_probe_read_user_str(tmp_event->filename, sizeof(tmp_event->filename), (void *)ctx->args[0]);
-    if(ret < 0){
-        tmp_event->filename[0] = 0; // mark filename as unknown
+        bpf_map_update_elem(&ctx_state_map, &cid, &ke_new_state, BPF_NOEXIST);
+        ke_state = bpf_map_lookup_elem(&ctx_state_map, &cid);
+        if(!ke_state) return 0;
     }
 
-    // assign values{ppid, execution time}
-    tmp_event->ppid = ppid;
-    tmp_event->execve_ts = execve_ts;
+    // assign data to map
+    ke_state->last_time = execve_ts;
+    if(!(ke_state->flags & EXECVE_SEEN)){
+        update_state(ke_state, EXECVE_SEEN);
+    }
 
-    // Copy scratchpad -> HASH map (persistent storage)
-    if(force_update_map_element(&execve_hash_map, &pid, tmp_event, BPF_ANY) != ERR_SUCCESS) return 0;
+    // selected events pass to ring buffer
+    if (ke_state->stage == STAGE_BEHAVIORAL)
+        emit_event(STAGE_BEHAVIORAL, ke_state->flags);
+
+    else if (ke_state->stage == STAGE_HIGH_RISK)
+        emit_event(STAGE_HIGH_RISK, ke_state->flags);
+
+    else if (ke_state->stage == STAGE_CONFIRMED)
+        emit_event(STAGE_CONFIRMED, ke_state->flags);
+
+    // get the buffer
+    sb = bpf_map_lookup_elem(&scratch_buf_map, &key);
+    if(!sb) return 0;
+
+    // extract the filename
+    len = bpf_probe_read_user_str(sb->buffer, SB_SIZE, filename);
+    if(len <= 1) return 0;
 
     /*
-    * check is that reverse shell
-    * conditions:
-    *   - connect syscalls should be triggered
-    *   - dup2 should be triggered and it must have descripter count 2 or higher {stdin/out/err}
+    *   for extract last name:
+    *       - Usually filename came like this
+    *           - /usr/bin/last_name
+    *           - /bin/last_name
     */
-    if(!is_reverse_shell(pid)){
-        return 0;
+    #pragma unroll
+    for(int i = 0; i < SB_SIZE; i++){
+        if(i < len && sb->buffer[i] == '/' && (i+1) < SB_SIZE){// need to prove bounds
+            name_idx = i + 1;
+        } 
     }
-    
-    // pass data to userland via ring buffer
-    if(ke_reverse_shell_type_event(pid) != ERR_SUCCESS) return 0;
 
-    // for debugging
-    #ifdef DEBUG_MODE
-      debug_counter(1); // increment debug counter
-    #endif
+    // check sh
+    if(
+        /*
+        *   sh\0 thats why 3 bytes. otherwise it will some letter + null terminator
+        */
+        name_idx + 2 <= len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "sh", 2) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // check php
+    if(
+        name_idx + 3 <= len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "php", 3) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // check bash and perl
+    if(
+        name_idx + 4 <= len // need to prove no OOB
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "bash", 4) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+
+        if(__builtin_memcmp(&sb->buffer[name_idx], "perl", 4) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // check python
+    if(
+        name_idx + 6 <= len
+    ){
+        if(__builtin_memcmp(&sb->buffer[name_idx], "python", 6) == 0){
+            update_state(ke_state, INTERPRETER_REAL_SEEN);
+        }
+    }
+
+    // extract the argv[0] pointer
+    ret = bpf_probe_read_user(&p, sizeof(p), &argv[0]);
+    if(ret < 0) return 0; 
+
+    // check first argument
+    if((p) && !(ke_state->flags & INTERPRETER_ARGV_SEEN)){
+        len = bpf_probe_read_user_str(sb->buffer, SB_SIZE, p);
+        if(len > 0){
+
+            if(
+                (__builtin_memcmp(sb->buffer, "bash", 4) == 0) || 
+                (__builtin_memcmp(sb->buffer, "python", 6) == 0) ||
+                (__builtin_memcmp(sb->buffer, "perl", 4) == 0) ||
+                (__builtin_memcmp(sb->buffer, "php", 3)) ||
+                (__builtin_memcmp(sb->buffer, "sh", 2) == 0)
+            ){
+                update_state(ke_state, INTERPRETER_ARGV_SEEN);
+            }
+        }
+
+    }
+
+    //extract the argv[1] pointer
+    ret = bpf_probe_read_user(&p, sizeof(p), &argv[1]);
+    if(ret < 0) return 0;
+
+    // check second argument
+    if((p) && !(ke_state->flags & SHELL_INLINE_SEEN)){
+        len = bpf_probe_read_user_str(sb->buffer, SB_SIZE, p);
+        if(len > 0){
+
+            // bash -i | python -c | perl -e
+            if(sb->buffer[0] == '-' && 
+                ((sb->buffer[1] == 'c') || 
+                (sb->buffer[1] == 'i') || 
+                (sb->buffer[1] == 'e') || 
+                (sb->buffer[1] == 'l')))
+            {
+                update_state(ke_state, SHELL_INLINE_SEEN);
+            }
+        }
+    }
+
+    // extract the argv[2] pointer
+    ret = bpf_probe_read_user(&p, sizeof(p), &argv[2]);
+    if(ret < 0) return 0;
+
+    // check third argument
+    if((p) && !(ke_state->flags & NETWORK_INTENT_SEEN)){
+        len = bpf_probe_read_user_str(sb->buffer, SB_SIZE, p);
+        if(len < 0) return 0;
+        
+        // /dev/tcp
+        if (len >= 8 &&
+            sb->buffer[0] == '/' &&
+            sb->buffer[1] == 'd' &&
+            sb->buffer[2] == 'e' &&
+            sb->buffer[3] == 'v' &&
+            sb->buffer[4] == '/' &&
+            sb->buffer[5] == 't' &&
+            sb->buffer[6] == 'c' &&
+            sb->buffer[7] == 'p') {
+
+            update_state(ke_state, NETWORK_INTENT_SEEN);
+            return 0;
+        }
+
+        // socket
+        if (len >= 6 &&
+            __builtin_memcmp(sb->buffer, "socket", 6) == 0) {
+
+            update_state(ke_state, NETWORK_INTENT_SEEN);
+            return 0;
+        }
+
+        // connect
+        if (len >= 7 &&
+            __builtin_memcmp(sb->buffer, "connect", 7) == 0) {
+
+            update_state(ke_state, NETWORK_INTENT_SEEN);
+            return 0;
+        }
+    }
 
     return 0;
 }

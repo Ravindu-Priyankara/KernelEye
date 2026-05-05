@@ -15,7 +15,7 @@ BUILD_DIR = ./build
 
 DEBUG ?= 0   # 0 = no debug, 1 = debug
 
-BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ \
+BPF_FLAGS = -O2 -g -target bpf -D__KERNEL__ -D__BPF_TRACING__ -D__TARGET_ARCH_x86 \
 	-I./common -I./helpers -I./maps -I/usr/include -I/usr/include/bpf
 
 ifeq ($(DEBUG),1)
@@ -42,22 +42,16 @@ BPF_SKEL = $(BUILD_DIR)/kerneleye.skel.h
 # ===============================
 
 CFLAGS = -Wall -Wextra -Werror -g \
-	-I./common -I./helpers -I./events -I./detections -I./policies -I./responses -I./loader -I./maps -I./ui -I./build
+	-I./common -I./helpers -I./events -I./loader -I./maps -I./ui -I./build
+
+ifeq ($(DEBUG),1)
+CFLAGS += -DDEBUG_MODE
+endif
 
 USER_SRCS := \
 	main.c \
 	events/event_handler.c \
 	loader/load_kerneleye.c \
-	detections/detection_engine.c \
-	detections/detection_registry.c \
-	detections/reverse_shell/reverse_shell_detector.c \
-	detections/rules/exec_rules.c \
-	policies/evaluate_policy.c \
-	responses/response_engine.c \
-	responses/response_registry.c \
-	responses/alert_response.c \
-	responses/block_response.c \
-	responses/allow_response.c \
 	ui/banner/banner.c \
 	ui/display/display.c \
 	ui/display/event_buffer.c

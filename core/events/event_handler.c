@@ -1,10 +1,6 @@
 #include <stdio.h>
 
 #include "../common/common_structs.h"
-#include "../detections/detection_results.h"
-#include "../detections/detection_headers.h"
-#include "../policies/policy_header.h"
-#include "../responses/response_engine.h"
 #include "../ui/display/display.h"
 #include "../ui/banner/banner.h"
 #include "../ui/display/event_buffer.h"
@@ -17,56 +13,30 @@ int handle_event(void *ctx, void *data, size_t size){
     (void)ctx;
     (void)size;
 
-    // helps to categorize the data by header type
-    struct ke_event_header *hdr = data;
-
-    // get all data from suspicious event
-    struct ke_suspicious_event *event = data;
-
-    // zero-initialized struct to hold event results
-    struct ke_detection_result result = {0};
+    // get all data from event header
+    struct ke_event_header *event = data;
 
     // accurately increase events
     ke_stats.events++;
-
-    // 1 = detected
-    // 0 = not detected
-    if(run_detections(event, &result)){
-        /*
-        *   Get the policy results. Policies defined this process should execute, warn, or block, but never take action.
-        *   Defined in:
-        *       - policies/policy_engine.h
-        */
-        enum ke_policy_result action = evaluate_policy(&result);
-
-        /*
-        * Execute the responses. Policies defined action, executed through the response engine.
-        * Types:
-        *   - Allow
-        *   - Warning
-        *   - Block
-        */
-        ke_execute_response(action, hdr);
-
-        /*
-        * Used for display events and other info.
-        * Defined in:
-        *   - ui/display/display.h
-        */
-        if(result.detection_id == KE_DET_REVERSE_SHELL)
-            ke_stats.reverse_shells++;
-        if(result.severity == KE_SEV_WARNING)
-            ke_stats.alerts++;
-        if(result.severity == KE_SEV_CRITICAL)
-            ke_stats.blocks++;
+    // amount of reverse shells
+    if(event->type == KE_EVENT_REVERSE_SHELL){
+        ke_stats.reverse_shells++;
     }
+
+    // alert & blocks
+    if(event->stage < STAGE_HIGH_RISK){
+        ke_stats.alerts++;
+    }else{
+        ke_stats.blocks++;
+    }
+
 
     // add to buffer (for ui)
     /*
     * Defined in:
     *   - ui/display/event_buffer.h
     */
-    add_event_to_buffer(event, &result);
+    add_event_to_buffer(event);
 
     // refresh screen
     printf("\033[2J\033[H");  // clear screen + move cursor top

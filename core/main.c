@@ -4,13 +4,11 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "detections/rules/exec_rules.h"
+#include <stdint.h>
+#include <stdarg.h>
 #include "events/event_handler.h"
 #include "ui/banner/banner.h"
 #include "ui/display/display.h"
-
-// ruleset macro
-#define KE_RULES_PATH "../detections/config/rules.conf"
 
 static volatile sig_atomic_t stop;
 struct stats ke_stats = {0}; // initialize all counts to 0
@@ -21,10 +19,26 @@ static void handle_signal(int sig)
     stop = 1;
 }
 
+// display logs
+static int libbpf_print_fn(enum libbpf_print_level level,
+                          const char *format, va_list args)
+{
+    (void)level;
+    (void)args;
+    (void)format;
+    #ifdef DEBUG_MODE
+        return vfprintf(stderr, format, args);
+    #else
+        return 0;
+    #endif
+}
+
 int main(int argc, char *argv[]){
     // avoid taking arguments
     (void)argv; // for fix unused warning
     if(argc != 1) return 1;
+
+    libbpf_set_print(libbpf_print_fn);
 
     // signal handlers
     struct sigaction sa = {0};
@@ -50,12 +64,6 @@ int main(int argc, char *argv[]){
     if(!kern) return 1;
 
     printf("[+] Initializing eBPF probes...\n");
-
-    // load exec rules once
-    exec_rules_init();
-    exec_rules_load_from_file(KE_RULES_PATH);
-    printf("[+] Loading detection rules...\n");
-    printf("[+] Loading detection rules...\n");
 
     system("clear");   // clean screen for monitoring UI
     ke_print_banner();

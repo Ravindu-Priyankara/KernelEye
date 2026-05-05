@@ -4,21 +4,38 @@
 #include "../common/common_status.h"
 #include "../common/common_debugging.h"
 #include "../common/common_syscalls.h"
+#include "../common/common_bit_ops.h"
 
 #include "../helpers/event_helpers.h"
 #include "../helpers/common_helpers.h"
 #include "../helpers/connect_helpers.h"
+#include "../helpers/score_helpers.h"
+#include "../helpers/stage_evaluate_helpers.h"
+// temp
+#include "../helpers/testing_helpers.h"
 
 #include "../maps/maps.h"
 
-// connect probe
+// probes
 #include "../probes/connect_tracker.bpf.h"
-
-// execve probe
+#include "../probes/dup2_tracker.bpf.h"
+#include "../probes/fork_tracker.bpf.h"
+#include "../probes/dup3_tracker.bpf.h"
+#include "../probes/open_tracker.bpf.h"
+#include "../probes/openat_tracker.bpf.h"
+#include "../probes/openat2_tracker.bpf.h"
+#include "../probes/sched_process_exit_tracker.bpf.h"
 #include "../probes/execve_tracker.bpf.h"
 
-// dup2 probe
-#include "../probes/dup2_tracker.bpf.h"
+// kprobe
+#include "../probes/dup_kprobe.bpf.h"
+
+// lsm
+#include "../probes/bprm_check_security_lsm.bpf.h"
+#include "../probes/socket_create_lsm.bpf.h"
+#include "../probes/socket_connect_lsm.bpf.h"
+#include "../probes/task_alloc_lsm.bpf.h"
+
 
 
 char LICENSE[] SEC("license") = "GPL";
