@@ -21,7 +21,10 @@ int BPF_PROG(trace_process_create, struct task_struct *task){
 
     if(ke_state->stage >= STAGE_HIGH_RISK){
         //print_flags_and_score(cid, ke_state->flags, ke_state->stage);
-        // for safe kill {experiment level}
+
+        // pass to ringbuffer
+        emit_event(ke_state->stage, ke_state->flags);
+
         bpf_send_signal(SIGKILL);
         
         return -EPERM;

@@ -44,12 +44,6 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
     if (ke_state->stage == STAGE_BEHAVIORAL)
         emit_event(STAGE_BEHAVIORAL, ke_state->flags);
 
-    else if (ke_state->stage == STAGE_HIGH_RISK)
-        emit_event(STAGE_HIGH_RISK, ke_state->flags);
-
-    else if (ke_state->stage == STAGE_CONFIRMED)
-        emit_event(STAGE_CONFIRMED, ke_state->flags);
-
     // get the buffer
     sb = bpf_map_lookup_elem(&scratch_buf_map, &key);
     if(!sb) return 0;

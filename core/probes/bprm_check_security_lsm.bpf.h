@@ -23,6 +23,9 @@ int BPF_PROG(trace_process_execute, struct linux_binprm *bprm){
     if(ke_state->stage >= STAGE_HIGH_RISK){
         //print_flags_and_score(cid, ke_state->flags, ke_state->stage);
         
+        // pass to ringbuffer
+        emit_event(ke_state->stage, ke_state->flags);
+
         bpf_send_signal(SIGKILL);
         
         return -EPERM;
