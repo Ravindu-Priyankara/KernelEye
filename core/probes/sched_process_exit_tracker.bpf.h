@@ -30,7 +30,6 @@ int sched_process_exit_handler(struct trace_event_raw_sched_process_exit *ctx){
         ke_state->fd_mutation_count = 0;
     }
     
-    bpf_map_delete_elem(&execve_hash_map, cid);
     bpf_map_delete_elem(&dup_map, cid);
     bpf_map_delete_elem(&connect_map, cid);
     bpf_map_delete_elem(&ctx_map, &pid); // otherwise innocent process will stay same cid
