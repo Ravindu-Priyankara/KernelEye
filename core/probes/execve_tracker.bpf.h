@@ -150,6 +150,7 @@ int execve_enter(struct trace_event_raw_sys_enter *ctx){
                 ((sb->buffer[1] == 'c') || 
                 (sb->buffer[1] == 'i') || 
                 (sb->buffer[1] == 'e') || 
+                (sb->buffer[1]) == 'M' || 
                 (sb->buffer[1] == 'l')))
             {
                 update_state(ke_state, SHELL_INLINE_SEEN);
