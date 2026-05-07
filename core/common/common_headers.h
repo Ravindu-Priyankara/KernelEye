@@ -9,4 +9,5 @@
 #include <bpf/bpf_endian.h> // for bpf_ntohs
 
 // for LSM hooks
-#include <linux/errno.h>
+// #include <linux/errno.h>
+#define EPERM 1
