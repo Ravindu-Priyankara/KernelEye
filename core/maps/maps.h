@@ -28,13 +28,6 @@
 *********** Hash Maps **********
 ********************************/
 
-// This hashmap used for track execve events {permanent struct}
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);   // map type
-    __uint(max_entries, HASHMAP_SIZE); // hashmap size
-    __type(key, __u64); // cid
-    __type(value, struct execve_event); // struct for hold data
-} execve_hash_map SEC(".maps");
 /*
 *   Temporary map. And used for hold dup old fd.
 */
@@ -95,14 +88,6 @@ struct {
 /****************************************
 *********** Per CPU Array Maps **********
 *****************************************/
-
-// This per cpu array maps are used as temporary storage to hold execve syscall data. And the main purpose is reduce stack size.
-struct {
-    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);    //MAP TYPE
-    __uint(max_entries, 1); // We need only 1 entry per cpu
-    __type(key, __u32); // We have only 1 entry, and it means our key is 0.
-    __type(value, struct execve_event);    // This struct hold the all execve event data temporary
-}tmp_execve_map SEC(".maps");
 
 // used as scratchpad
 struct {
